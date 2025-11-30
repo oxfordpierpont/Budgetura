@@ -19,7 +19,7 @@ const AIChatView: React.FC<Props> = ({ initialPrompt, onClose }) => {
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I'm your DeDebtify AI coach. I can help analyze your spending, suggest payoff strategies, or answer questions about your financial health. How can I help you today?",
+      content: "Hello! I'm your Budgetura AI coach. I can help analyze your spending, suggest payoff strategies, or answer questions about your financial health. How can I help you today?",
       timestamp: new Date()
     }
   ]);
@@ -87,7 +87,7 @@ const AIChatView: React.FC<Props> = ({ initialPrompt, onClose }) => {
            </button>
         )}
         <Bot size={24} className="text-purple-600" />
-        <span className="font-bold text-gray-900">DeDebtify AI Coach</span>
+        <span className="font-bold text-gray-900">Budgetura AI Coach</span>
       </div>
 
       {/* Desktop Header */}
@@ -98,7 +98,7 @@ const AIChatView: React.FC<Props> = ({ initialPrompt, onClose }) => {
               </div>
               <div>
                   <h2 className="text-xl font-bold text-gray-900">Financial Coach</h2>
-                  <p className="text-sm text-gray-500">Powered by DeDebtify AI</p>
+                  <p className="text-sm text-gray-500">Powered by Budgetura AI</p>
               </div>
           </div>
           <div className="text-xs font-medium bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-100">

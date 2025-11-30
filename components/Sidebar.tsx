@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                <ShieldCheck size={28} />
             </div>
             <div>
-               <h2 className="text-white text-xl font-bold tracking-wide leading-none">DeDebtify</h2>
+               <h2 className="text-white text-xl font-bold tracking-wide leading-none">Budgetura</h2>
                <p className="text-xs text-gray-500 mt-1 font-medium tracking-wider uppercase">Dashboard</p>
             </div>
           </div>
@@ -137,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                        <span className="absolute -top-2 -right-1 w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_#A855F7]"></span>
                     )}
                 </div>
-                <span className={`text-base font-medium ${currentView === 'ai-chat' ? 'font-semibold' : ''}`}>DeDebtify AI</span>
+                <span className={`text-base font-medium ${currentView === 'ai-chat' ? 'font-semibold' : ''}`}>Budgetura AI</span>
             </button>
           </div>
         </nav>

@@ -499,7 +499,7 @@ const CardRow: React.FC<CardRowProps> = ({ card, onDelete, onEdit, onViewHistory
                        <div className="flex justify-between items-start mb-3">
                            <div className="flex items-center gap-2 text-purple-600">
                                <Sparkles size={18} />
-                               <span className="font-bold text-sm">DeDebtify Insight</span>
+                               <span className="font-bold text-sm">Budgetura Insight</span>
                            </div>
                            <button onClick={(e) => { e.stopPropagation(); setShowInlineAI(false); }} className="text-gray-400 hover:text-gray-600">
                                <X size={16} />
@@ -568,7 +568,7 @@ const CardRow: React.FC<CardRowProps> = ({ card, onDelete, onEdit, onViewHistory
                                 onClick={(e) => { e.stopPropagation(); setShowInlineAI(true); }}
                                 className="bg-purple-50 text-purple-600 hover:bg-purple-100 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-colors"
                            >
-                               <Sparkles size={12} /> Ask DeDebtify
+                               <Sparkles size={12} /> Ask Budgetura
                            </button>
                        </div>
                        <div className="flex gap-4 justify-center text-xs font-bold text-gray-500">

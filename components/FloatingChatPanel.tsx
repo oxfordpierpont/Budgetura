@@ -69,7 +69,7 @@ const FloatingChatPanel = () => {
                  <Bot size={18} className="text-white" />
              </div>
              <div>
-                 <h3 className="font-bold text-sm">DeDebtify Coach</h3>
+                 <h3 className="font-bold text-sm">Budgetura Coach</h3>
                  {!minimized && <p className="text-[10px] text-purple-100 opacity-90">Online • Financial Assistant</p>}
              </div>
          </div>
