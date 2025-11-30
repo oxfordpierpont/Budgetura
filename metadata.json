@@ -1,0 +1,5 @@
+{
+  "name": "DeDebtify",
+  "description": "A modern, high-fidelity financial dashboard merging a dark-themed sidebar navigation with a clean, card-based light content area. Features interactive charts, credit card management, loan tracking, and goal progress visualization.",
+  "requestFramePermissions": []
+}
