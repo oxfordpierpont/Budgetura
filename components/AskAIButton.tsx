@@ -7,7 +7,7 @@ interface Props {
   label?: string;
 }
 
-const AskAIButton: React.FC<Props> = ({ onClick, className = '', label = 'Ask DeDebtify' }) => {
+const AskAIButton: React.FC<Props> = ({ onClick, className = '', label = 'Ask Budgetura' }) => {
   return (
     <button 
       onClick={(e) => {
