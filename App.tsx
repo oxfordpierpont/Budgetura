@@ -4,12 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
 // Auth pages
-import { LoginPage } from './pages/auth/LoginPage';
-import { SignUpPage } from './pages/auth/SignUpPage';
-import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { LoginPage } from './src/pages/auth/LoginPage';
+import { SignUpPage } from './src/pages/auth/SignUpPage';
+import { ForgotPasswordPage } from './src/pages/auth/ForgotPasswordPage';
 
 // Protected route wrapper
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute } from './src/components/ProtectedRoute';
 
 // Existing app (will be refactored with proper routing)
 import { DebtProvider } from './context/DebtContext';
