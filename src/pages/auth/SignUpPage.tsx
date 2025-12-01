@@ -63,7 +63,23 @@ export function SignUpPage() {
             setEmailSent(true);
             toast.success('Account created! Check your email to verify.');
         } catch (err: any) {
-            const errorMessage = err.message || 'Failed to create account';
+            console.error('Signup error:', err);
+            let errorMessage = 'Failed to create account';
+
+            if (typeof err === 'string') {
+                errorMessage = err;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            } else if (err && typeof err === 'object') {
+                // Handle Supabase error object structure
+                errorMessage = err.message || err.error_description || JSON.stringify(err);
+            }
+
+            // Clean up JSON string if it was stringified
+            if (errorMessage === '{}') {
+                errorMessage = 'An unknown error occurred. Please check console for details.';
+            }
+
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
