@@ -38,11 +38,11 @@ export function LoginPage() {
 
                 {/* Logo */}
                 <div className="flex items-center gap-3 mb-12">
-                    {/* Using text fallback if image is missing, or placeholder */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">B</div>
-                        <span className="text-xl font-bold text-gray-900">Budgetura</span>
-                    </div>
+                    <img
+                        src="/assets/images/Budgetura-logo-long.png"
+                        alt="Budgetura Logo"
+                        className="h-12 w-auto object-contain"
+                    />
                 </div>
 
                 {/* Form Container */}
