@@ -37,11 +37,11 @@ export function LoginPage() {
             <div className="w-full lg:w-[45%] flex flex-col p-8 md:p-12 lg:p-16 justify-between relative z-10 bg-white">
 
                 {/* Logo */}
-                <div className="flex items-center gap-3 mb-12">
+                <div className="flex justify-center w-full mb-12">
                     <img
                         src="/assets/images/Budgetura-logo-long.png"
                         alt="Budgetura Logo"
-                        className="h-12 w-auto object-contain"
+                        className="w-[30%] h-auto object-contain"
                     />
                 </div>
 
