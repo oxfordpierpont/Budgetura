@@ -158,10 +158,10 @@ export function LoginPage() {
                         Budgetura v2.1
                     </div>
                     <h2 className="text-5xl font-bold text-white mb-6 leading-[1.15] tracking-tight">
-                        Budgetura's AI Coach Becomes Financial Smart
+                        Meet Your New AI Financial Superpower
                     </h2>
                     <p className="text-lg text-indigo-100 leading-relaxed max-w-lg mx-auto font-medium">
-                        Create AI-tailored strategies, designed specifically for your debt payoff and financial goals. Available for all plans (including Free)!
+                        Generate personalized debt payoff strategies and smart financial goals in seconds. Now available on all plans!
                     </p>
                 </div>
 
