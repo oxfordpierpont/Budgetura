@@ -41,7 +41,7 @@ export function LoginPage() {
                     <img
                         src="/assets/images/Budgetura-logo-long.png"
                         alt="Budgetura Logo"
-                        className="w-[30%] h-auto object-contain"
+                        className="w-[60%] h-auto object-contain"
                     />
                 </div>
 
@@ -155,7 +155,7 @@ export function LoginPage() {
                 <div className="max-w-xl mx-auto mb-20 relative z-10">
                     <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold mb-8 border border-white/20 shadow-sm backdrop-blur-md">
                         <span className="bg-white text-[#6366F1] px-1.5 rounded-sm mr-2 text-[10px] uppercase tracking-wider">New</span>
-                        Budgetura v2.1
+                        Budgetura v2.1.3
                     </div>
                     <h2 className="text-5xl font-bold text-white mb-6 leading-[1.15] tracking-tight">
                         Meet Your New AI Financial Superpower
@@ -184,7 +184,7 @@ export function LoginPage() {
                         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
                             <div className="flex items-center gap-2">
                                 <Sparkles className="text-purple-600 fill-purple-600" size={16} />
-                                <span className="font-bold text-purple-600 text-sm">AI Coach</span>
+                                <span className="font-bold text-purple-600 text-sm">Budgetura AI Debt Coach</span>
                             </div>
                             <div className="flex gap-1.5 opacity-30">
                                 <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
@@ -195,16 +195,16 @@ export function LoginPage() {
                         {/* Body */}
                         <div className="p-5 bg-gray-50 min-h-[320px] flex flex-col gap-4 text-left">
                             <div className="bg-white p-4 rounded-2xl rounded-tl-sm border border-gray-100 shadow-sm">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">You</p>
-                                <p className="text-sm font-medium text-gray-800 leading-relaxed">What do you want to write about?</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Budgetura AI</p>
+                                <p className="text-sm font-medium text-gray-800 leading-relaxed">Hello! I'm your Budgetura Debt coach.</p>
                                 <div className="mt-2 bg-gray-50 p-2 rounded-lg text-xs text-gray-500 italic border border-dashed border-gray-200">
-                                    Write a Instagram post about our new...
+                                    Analyze my current debt breakdown...
                                 </div>
                             </div>
 
                             <div className="bg-purple-100/50 p-4 rounded-2xl rounded-tr-sm shadow-sm border border-purple-100">
                                 <p className="text-sm leading-relaxed text-gray-700">
-                                    Fancy a freshly brewed cup from your local coffee shop? Come and try our new espresso!
+                                    Your debt-to-income ratio has improved by 2% this month. Keep up the great work!
                                 </p>
                                 <div className="flex justify-between items-center mt-3 pt-3 border-t border-purple-200/50">
                                     <div className="flex gap-2">
@@ -212,10 +212,10 @@ export function LoginPage() {
                                     </div>
                                     <div className="flex gap-2">
                                         <span className="text-[10px] text-purple-600 font-bold flex items-center gap-1">
-                                            Retry
+                                            Follow Up
                                         </span>
                                         <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded font-bold">
-                                            Replace
+                                            Exit
                                         </span>
                                     </div>
                                 </div>
