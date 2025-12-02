@@ -94,7 +94,7 @@ export const addLoan = async (userId: string, loan: Loan) => {
       loan_name: loan.name,
       lender: loan.lender,
       account_number: loan.accountNumber,
-      loan_type: loan.type.toLowerCase(),
+      loan_type: loan.type.toLowerCase().replace(/\s+/g, '_'),
       original_principal: loan.originalPrincipal,
       current_balance: loan.currentBalance,
       interest_rate: loan.rate,
@@ -131,7 +131,7 @@ export const updateLoan = async (id: string, updates: Partial<Loan>) => {
   if (updates.name) dbUpdates.loan_name = updates.name;
   if (updates.lender) dbUpdates.lender = updates.lender;
   if (updates.accountNumber) dbUpdates.account_number = updates.accountNumber;
-  if (updates.type) dbUpdates.loan_type = updates.type.toLowerCase();
+  if (updates.type) dbUpdates.loan_type = updates.type.toLowerCase().replace(/\s+/g, '_');
   if (updates.originalPrincipal !== undefined) dbUpdates.original_principal = updates.originalPrincipal;
   if (updates.currentBalance !== undefined) dbUpdates.current_balance = updates.currentBalance;
   if (updates.rate !== undefined) dbUpdates.interest_rate = updates.rate;

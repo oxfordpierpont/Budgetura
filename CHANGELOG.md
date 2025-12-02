@@ -5,6 +5,16 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.3] - 2025-12-02
+
+### Fixed
+- **Dummy data generation error:** Fixed `loan_type_check` constraint violation
+  - Changed dummy mortgage type from 'Mortgage' to 'Home Equity' to match database schema
+  - Updated `addLoan` and `updateLoan` to convert spaces to underscores (e.g., 'Home Equity' → 'home_equity')
+  - Dummy data generation now works correctly for all loan types
+
+---
+
 ## [2.1.2] - 2025-12-02
 
 ### Fixed

@@ -139,7 +139,7 @@ export const LOANS: Loan[] = [
   {
     id: '1',
     name: 'Highland Park Home',
-    type: 'Mortgage',
+    type: 'Home Equity',
     currentBalance: 238500.00,
     monthlyPayment: 1650.00,
     rate: 3.875,
