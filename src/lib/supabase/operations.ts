@@ -323,3 +323,51 @@ export const updateUserSettings = async (userId: string, settings: Partial<any>)
   if (error) throw error;
   return data;
 };
+
+// ============================================================================
+// DATA MANAGEMENT
+// ============================================================================
+
+export const clearAllUserData = async (userId: string) => {
+  // Delete all credit cards
+  const { error: cardsError } = await supabase
+    .from('credit_cards')
+    .delete()
+    .eq('user_id', userId);
+
+  if (cardsError) throw cardsError;
+
+  // Delete all loans
+  const { error: loansError } = await supabase
+    .from('loans')
+    .delete()
+    .eq('user_id', userId);
+
+  if (loansError) throw loansError;
+
+  // Delete all bills
+  const { error: billsError } = await supabase
+    .from('bills')
+    .delete()
+    .eq('user_id', userId);
+
+  if (billsError) throw billsError;
+
+  // Delete all goals
+  const { error: goalsError } = await supabase
+    .from('goals')
+    .delete()
+    .eq('user_id', userId);
+
+  if (goalsError) throw goalsError;
+
+  // Delete all snapshots
+  const { error: snapshotsError } = await supabase
+    .from('snapshots')
+    .delete()
+    .eq('user_id', userId);
+
+  if (snapshotsError) throw snapshotsError;
+
+  return { success: true };
+};

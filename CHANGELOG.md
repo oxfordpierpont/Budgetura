@@ -5,6 +5,27 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-12-02
+
+### Added
+- **Clear All Data** functionality in Settings
+  - New "Clear All Data" button to remove all financial records from the database
+  - Confirmation dialog to prevent accidental data deletion
+  - Deletes all credit cards, loans, bills, goals, and snapshots for the current user
+- Warning note in Data Management section explaining dummy data vs real data
+
+### Changed
+- Renamed "Dummy Data" section to "Data Management" in Settings
+- Improved button labels: "Generate Data" → "Generate Dummy Data"
+- Added icons to data management buttons for better visual clarity
+- Both generate and clear buttons are now disabled during operations
+
+### Fixed
+- **Dummy data confusion:** Users can now clearly differentiate between dummy test data and real financial data
+- Users can now easily remove unwanted dummy data from their account
+
+---
+
 ## [2.1.0] - 2025-12-02
 
 ### Fixed

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Save, Bot, Database, Trash2, Layout, Shield, Wand2, User, Mail, Lock, Phone, CreditCard, Sliders, ChevronDown } from 'lucide-react';
+import { Save, Bot, Database, Trash2, Layout, Shield, Wand2, User, Mail, Lock, Phone, CreditCard, Sliders, ChevronDown, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../src/hooks/useAuth';
 import { useDebt } from '../context/DebtContext';
 import { generateDummyDataForUser } from '../src/lib/generateDummyData';
+import { clearAllUserData } from '../src/lib/supabase/operations';
 
 const SettingsView = () => {
   const { user } = useAuth();
   const { refetch } = useDebt() as any;
   const [generating, setGenerating] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [message, setMessage] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -64,6 +66,35 @@ const SettingsView = () => {
       setMessage('✗ An error occurred while generating data.');
     } finally {
       setGenerating(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
+  };
+
+  const handleClearAllData = async () => {
+    if (!user) {
+      setMessage('Please log in to clear data');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to delete ALL your financial data? This action cannot be undone.\n\nThis will permanently delete:\n• All credit cards\n• All loans\n• All bills\n• All goals\n• All snapshots'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setClearing(true);
+      setMessage('Clearing all data...');
+
+      await clearAllUserData(user.id);
+
+      setMessage('✓ All data cleared successfully!');
+      await refetch();
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('✗ An error occurred while clearing data.');
+    } finally {
+      setClearing(false);
       setTimeout(() => setMessage(''), 5000);
     }
   };
@@ -315,7 +346,7 @@ const SettingsView = () => {
           </div>
         </section>
 
-        {/* Dummy Data */}
+        {/* Data Management */}
         <section className="bg-gray-50 rounded-2xl border border-dashed border-gray-300 overflow-hidden">
           <div className="p-6 flex flex-col gap-4">
              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -324,16 +355,24 @@ const SettingsView = () => {
                     <Database size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900">Dummy Data</h3>
-                    <p className="text-xs text-gray-500">Generate sample data for testing</p>
+                    <h3 className="font-bold text-gray-900">Data Management</h3>
+                    <p className="text-xs text-gray-500">Manage your financial data</p>
                   </div>
                </div>
                <div className="flex gap-3 w-full md:w-auto">
                   <button
                     onClick={handleGenerateDummyData}
-                    disabled={generating}
+                    disabled={generating || clearing}
                     className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                     {generating ? 'Generating...' : 'Generate Data'}
+                     <Database size={16} />
+                     {generating ? 'Generating...' : 'Generate Dummy Data'}
+                  </button>
+                  <button
+                    onClick={handleClearAllData}
+                    disabled={generating || clearing}
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-red-50 border border-red-300 text-red-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                     <Trash2 size={16} />
+                     {clearing ? 'Clearing...' : 'Clear All Data'}
                   </button>
                </div>
              </div>
@@ -342,6 +381,12 @@ const SettingsView = () => {
                  {message}
                </div>
              )}
+             <div className="bg-yellow-50 p-4 rounded-lg flex items-start gap-3 border border-yellow-200">
+                <AlertTriangle size={18} className="text-yellow-600 mt-0.5 shrink-0" />
+                <div className="text-xs text-yellow-900 leading-relaxed">
+                   <strong>Note:</strong> Dummy data is for testing purposes only. Use "Generate Dummy Data" to populate your account with sample financial information. Use "Clear All Data" to remove all your financial records (this cannot be undone).
+                </div>
+             </div>
           </div>
         </section>
 
