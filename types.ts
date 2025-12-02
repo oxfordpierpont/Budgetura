@@ -203,3 +203,49 @@ export interface UserSettings {
   currencySymbol: string;
   payoffStrategy: 'avalanche' | 'snowball' | 'custom';
 }
+
+// Plaid Integration Types
+export interface PlaidItem {
+  id: string;
+  user_id: string;
+  item_id: string;
+  access_token: string;
+  institution_id: string | null;
+  institution_name: string | null;
+  status: 'active' | 'inactive' | 'error';
+  last_sync_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaidAccount {
+  id: string;
+  user_id: string;
+  item_id: string;
+  account_id: string;
+  name: string;
+  official_name: string | null;
+  type: string;
+  subtype: string | null;
+  mask: string | null;
+  current_balance: number | null;
+  available_balance: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaidTransaction {
+  id: string;
+  user_id: string;
+  account_id: string;
+  transaction_id: string;
+  name: string;
+  amount: number;
+  date: string;
+  category: string[] | null;
+  merchant_name: string | null;
+  payment_channel: string | null;
+  pending: boolean;
+  created_at: string;
+}

@@ -1,5 +1,5 @@
 import { supabase } from './client';
-import { CreditCard, Loan, Bill, Goal } from '../../types';
+import { CreditCard, Loan, Bill, Goal, PlaidAccount, PlaidItem } from '../../types';
 
 // ============================================================================
 // CREDIT CARDS
@@ -370,4 +370,87 @@ export const clearAllUserData = async (userId: string) => {
   if (snapshotsError) throw snapshotsError;
 
   return { success: true };
+};
+
+// ============================================================================
+// PLAID INTEGRATION
+// ============================================================================
+
+/**
+ * Create a Plaid Link token for initiating bank connection
+ */
+export const createPlaidLinkToken = async (userId: string): Promise<string> => {
+  const { data, error } = await supabase.functions.invoke('plaid-create-link-token', {
+    body: { userId },
+  });
+
+  if (error) throw error;
+  if (!data?.link_token) throw new Error('Failed to create link token');
+
+  return data.link_token;
+};
+
+/**
+ * Exchange public token for access token and store connection
+ */
+export const exchangePlaidToken = async (userId: string, publicToken: string) => {
+  const { data, error } = await supabase.functions.invoke('plaid-exchange-token', {
+    body: { userId, publicToken },
+  });
+
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Get all Plaid-connected bank accounts for a user
+ */
+export const getPlaidAccounts = async (userId: string): Promise<PlaidAccount[]> => {
+  const { data, error } = await supabase
+    .from('plaid_accounts')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
+/**
+ * Get all Plaid items (bank connections) for a user
+ */
+export const getPlaidItems = async (userId: string): Promise<PlaidItem[]> => {
+  const { data, error } = await supabase
+    .from('plaid_items')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
+/**
+ * Disconnect a Plaid item (remove bank connection)
+ */
+export const disconnectPlaidItem = async (itemId: string) => {
+  const { error } = await supabase
+    .from('plaid_items')
+    .update({ status: 'inactive' })
+    .eq('item_id', itemId);
+
+  if (error) throw error;
+};
+
+/**
+ * Delete a Plaid item completely
+ */
+export const deletePlaidItem = async (itemId: string) => {
+  const { error } = await supabase
+    .from('plaid_items')
+    .delete()
+    .eq('item_id', itemId);
+
+  if (error) throw error;
 };

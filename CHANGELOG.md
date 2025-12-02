@@ -5,6 +5,40 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-12-02
+
+### Added
+- **Plaid Bank Account Integration** - Connect and sync bank accounts
+  - Database schema with three tables: `plaid_items`, `plaid_accounts`, `plaid_transactions`
+  - Row Level Security (RLS) policies for all Plaid tables
+  - Database migration file: `supabase/migrations/001_plaid_tables.sql`
+  - Edge Functions for Plaid API integration (already existed, now documented)
+  - TypeScript types for Plaid data models
+  - Plaid operations in `src/lib/supabase/operations.ts`:
+    - `createPlaidLinkToken()` - Initiates bank connection
+    - `exchangePlaidToken()` - Completes connection
+    - `getPlaidAccounts()` - Fetches connected accounts
+    - `getPlaidItems()` - Fetches bank connections
+    - `disconnectPlaidItem()` - Disconnects a bank
+    - `deletePlaidItem()` - Deletes a bank connection
+  - Frontend components:
+    - `PlaidLink.tsx` - Button to connect bank accounts
+    - `BankAccounts.tsx` - View to display and manage connected banks
+  - Custom React hook: `usePlaid.ts` for managing Plaid data
+  - Comprehensive deployment guide: `PLAID_DEPLOYMENT.md`
+  - Implementation summary: `PLAID_IMPLEMENTATION_SUMMARY.md`
+
+### Changed
+- Added `react-plaid-link` dependency to `package.json`
+- Updated TypeScript types to include Plaid interfaces
+
+### Documentation
+- Added step-by-step Plaid deployment instructions
+- Created implementation checklist and testing guide
+- Documented security considerations for bank account integration
+
+---
+
 ## [2.1.3] - 2025-12-02
 
 ### Fixed
