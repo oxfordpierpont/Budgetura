@@ -73,18 +73,14 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
             </button>
         </div>
 
-        {/* Branding */}
-        <div className="flex flex-col items-start mb-10 pt-2 lg:pt-4">
-          <div className="relative mb-3 flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-               <ShieldCheck size={28} />
-            </div>
-            <div>
-               <h2 className="text-white text-xl font-bold tracking-wide leading-none">Budgetura</h2>
-               <p className="text-xs text-gray-500 mt-1 font-medium tracking-wider uppercase">Dashboard</p>
-            </div>
-          </div>
-        </div>
+                {/* Logo */}
+                <div className="flex justify-center w-full mb-8">
+                    <img
+                        src="/assets/images/Budgetura-logo-long.png"
+                        alt="Budgetura Logo"
+                        className="w-[60%] h-auto object-contain"
+                    />
+                </div> 
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
