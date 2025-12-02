@@ -16,10 +16,23 @@
 - ✅ Dependency added to [package.json](package.json) - `react-plaid-link`
 - ✅ All code committed and pushed to GitHub
 - ✅ Documentation created
+- ✅ **Plaid credentials stored in Supabase Vault**
+- ✅ **Edge Functions updated to read from Vault**
 
 ## 🔧 Manual Steps Required (You Need To Do)
 
-### Step 1: Run Database Migration
+### ~~Step 1: Get Plaid Credentials~~ ✅ DONE
+You've already signed up for Plaid and obtained sandbox credentials.
+
+### ~~Step 2: Configure Vault Secrets~~ ✅ DONE
+You've successfully stored these in Supabase Vault:
+- `client_id` = Your Plaid Client ID
+- `secret` = Your Plaid Sandbox Secret
+- `environment` = `sandbox`
+
+📖 **Details**: [supabase/VAULT_SETUP_COMPLETE.md](supabase/VAULT_SETUP_COMPLETE.md)
+
+### Step 1: Run Database Migration (NEXT STEP)
 
 **Using Supabase Dashboard:**
 1. Go to https://supabase.sec-admn.com
@@ -34,45 +47,7 @@
    - `plaid_accounts`
    - `plaid_transactions`
 
-### Step 2: Get Plaid API Credentials
-
-**Sign up for Plaid:**
-1. Go to https://dashboard.plaid.com
-2. Sign up for a free account (if you don't have one)
-3. Complete account verification
-4. Navigate to **Team Settings > Keys**
-5. Copy these credentials:
-   - **Client ID** (something like: `63a1b2c3d4e5f6g7h8i9j0k1`)
-   - **Sandbox Secret** (for testing)
-   - **Production Secret** (when ready for live banking)
-
-### Step 3: Configure Supabase Secrets
-
-**For Self-Hosted Supabase (your setup at supabase.sec-admn.com):**
-
-The secrets configuration is different from Supabase Cloud. You need to add these three secrets:
-
-| Name | Value | Example |
-|------|-------|---------|
-| `PLAID_CLIENT_ID` | Your Plaid Client ID | `63a1b2c3d4e5f6g7h8i9j0k1` |
-| `PLAID_SECRET` | Your Plaid Sandbox Secret | `abc123def456ghi789...` |
-| `PLAID_ENV` | `sandbox` (for testing) | `sandbox` |
-
-**📖 See detailed guide:** [supabase/SELF_HOSTED_SECRETS_SETUP.md](supabase/SELF_HOSTED_SECRETS_SETUP.md)
-
-**Quick locations to check in your dashboard:**
-1. **Project Settings** → Look for Environment Variables or Vault
-2. **Edge Functions** → Click a function → Look for Configuration/Environment
-3. **Database** → Vault section (for storing secrets)
-
-If you can't find these sections, you may need to configure secrets through:
-- The Supabase CLI (if you have access)
-- Docker environment variables (if running in Docker)
-- Server configuration files
-
-⚠️ **Important:** Use Sandbox credentials for testing. Switch to Production credentials only when ready for live banking data.
-
-### Step 4: Deploy Edge Functions
+### Step 2: Deploy Edge Functions (NEXT STEP)
 
 **Option A: Using Supabase Dashboard (Recommended)**
 
@@ -100,22 +75,12 @@ supabase functions deploy plaid-create-link-token
 supabase functions deploy plaid-exchange-token
 ```
 
-### Step 5: Install Dependencies Locally
-
-**On your local development machine:**
-```bash
-cd /path/to/Budgetura
-npm install
-```
-
-This will install the new `react-plaid-link` package.
-
-### Step 6: Deploy to Dokploy
+### Step 3: Deploy to Dokploy
 
 The code is already pushed to GitHub. Dokploy should automatically:
 1. Detect the new commit
 2. Pull the latest code
-3. Run `npm install` (installs react-plaid-link)
+3. Run `npm install` (installs react-plaid-link dependency)
 4. Build the app
 5. Deploy the new version
 
@@ -125,7 +90,7 @@ The code is already pushed to GitHub. Dokploy should automatically:
 3. Click **Redeploy** or **Rebuild**
 4. Wait for deployment to complete
 
-### Step 7: Test the Integration
+### Step 4: Test the Integration
 
 **Once deployed:**
 1. Go to your deployed Budgetura app
