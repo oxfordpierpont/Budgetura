@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -16,11 +16,13 @@ COPY . .
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 ARG VITE_APP_TITLE=Budgetura
+ARG VITE_PLAID_BACKEND_URL
 
 # Set environment variables for the build
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_APP_TITLE=$VITE_APP_TITLE
+ENV VITE_PLAID_BACKEND_URL=$VITE_PLAID_BACKEND_URL
 
 # Build the application
 RUN npm run build
