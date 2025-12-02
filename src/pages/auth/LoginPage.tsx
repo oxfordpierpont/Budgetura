@@ -41,7 +41,7 @@ export function LoginPage() {
                     <img
                         src="/assets/images/Budgetura-logo-long.png"
                         alt="Budgetura Logo"
-                        className="w-[30%] h-auto object-contain"
+                        className="w-[60%] h-auto object-contain"
                     />
                 </div>
 
