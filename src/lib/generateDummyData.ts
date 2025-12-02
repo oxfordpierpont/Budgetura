@@ -24,7 +24,7 @@ export const generateDummyDataForUser = async (userId: string) => {
         annualFee: card.annualFee,
         rewardsProgram: card.rewardsProgram,
         cashbackRate: card.cashbackRate,
-        pointsBalance: card.pointsBalance,
+        pointsBalance: Math.floor(card.pointsBalance || 0),
         autoPay: card.autoPay,
         status: card.status,
         notes: card.notes,
