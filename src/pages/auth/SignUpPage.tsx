@@ -326,8 +326,7 @@ export function SignUpPage() {
 
                 <div className="max-w-xl mx-auto mb-16 relative z-10">
                     <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold mb-8 border border-white/20 shadow-sm backdrop-blur-md">
-                        <span className="bg-white text-[#6366F1] px-1.5 rounded-sm mr-2 text-[10px] uppercase tracking-wider">Free</span>
-                        Get Started Today
+                        Get Started For <span className="bg-white text-[#6366F1] px-1.5 rounded-sm mr-2 text-[10px] uppercase tracking-wider">Free</span>
                     </div>
                     <h2 className="text-5xl font-bold text-white mb-6 leading-[1.15] tracking-tight">
                         Take Control of Your Financial Future
@@ -404,8 +403,8 @@ export function SignUpPage() {
                                     </svg>
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-900 text-sm">100% Free</p>
-                                    <p className="text-xs text-gray-500">No hidden fees, ever</p>
+                                    <p className="font-bold text-gray-900 text-sm">Live Coaching Sessions</p>
+                                    <p className="text-xs text-gray-500">Get help from a real person for real help</p>
                                 </div>
                             </div>
                         </div>
