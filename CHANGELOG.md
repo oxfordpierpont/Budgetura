@@ -5,6 +5,16 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.2] - 2025-12-02
+
+### Fixed
+- **Critical bug fix:** Clear All Data function was throwing `TypeError: t is not a function`
+  - Exposed `refetch` function in DebtContext interface and provider value
+  - Removed unsafe `as any` type assertion from SettingsView
+  - Clear All Data now works correctly and refreshes the UI after deletion
+
+---
+
 ## [2.1.1] - 2025-12-02
 
 ### Added

@@ -7,7 +7,7 @@ import { clearAllUserData } from '../src/lib/supabase/operations';
 
 const SettingsView = () => {
   const { user } = useAuth();
-  const { refetch } = useDebt() as any;
+  const { refetch } = useDebt();
   const [generating, setGenerating] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [message, setMessage] = useState('');

@@ -19,6 +19,7 @@ interface DebtContextType {
   settings: UserSettings;
   aiChatState: AIChatState;
   loading: boolean;
+  refetch: () => Promise<void>;
   setAIChatState: (state: AIChatState) => void;
   addCard: (card: CreditCard) => Promise<void>;
   updateCard: (id: string, card: Partial<CreditCard>) => Promise<void>;
@@ -149,6 +150,7 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       settings,
       aiChatState,
       loading,
+      refetch,
       setAIChatState,
       addCard,
       updateCard,
