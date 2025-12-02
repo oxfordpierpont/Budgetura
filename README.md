@@ -2,7 +2,7 @@
 
 # Budgetura - React Debt Management Application
 
-**Version:** 2.0.0
+**Version:** 2.1.0
 **Author:** Oxford Pierpont
 **Requires:** Node.js 18+
 **License:** GPL-2.0+
