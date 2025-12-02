@@ -380,11 +380,23 @@ export const clearAllUserData = async (userId: string) => {
  * Create a Plaid Link token for initiating bank connection
  */
 export const createPlaidLinkToken = async (userId: string): Promise<string> => {
-  const { data, error } = await supabase.functions.invoke('plaid-create-link-token', {
-    body: { userId },
+  // Use backend API instead of Edge Functions (which aren't available in self-hosted Supabase)
+  const PLAID_BACKEND_URL = import.meta.env.VITE_PLAID_BACKEND_URL || 'http://localhost:3001';
+
+  const response = await fetch(`${PLAID_BACKEND_URL}/api/plaid/create-link-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId }),
   });
 
-  if (error) throw error;
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to create link token');
+  }
+
+  const data = await response.json();
   if (!data?.link_token) throw new Error('Failed to create link token');
 
   return data.link_token;
@@ -394,12 +406,23 @@ export const createPlaidLinkToken = async (userId: string): Promise<string> => {
  * Exchange public token for access token and store connection
  */
 export const exchangePlaidToken = async (userId: string, publicToken: string) => {
-  const { data, error } = await supabase.functions.invoke('plaid-exchange-token', {
-    body: { userId, publicToken },
+  // Use backend API instead of Edge Functions
+  const PLAID_BACKEND_URL = import.meta.env.VITE_PLAID_BACKEND_URL || 'http://localhost:3001';
+
+  const response = await fetch(`${PLAID_BACKEND_URL}/api/plaid/exchange-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId, publicToken }),
   });
 
-  if (error) throw error;
-  return data;
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to exchange token');
+  }
+
+  return await response.json();
 };
 
 /**
