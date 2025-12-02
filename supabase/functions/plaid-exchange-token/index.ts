@@ -14,10 +14,39 @@ serve(async (req) => {
   }
 
   try {
-    // Get Plaid credentials from environment variables
-    const PLAID_CLIENT_ID = Deno.env.get('PLAID_CLIENT_ID');
-    const PLAID_SECRET = Deno.env.get('PLAID_SECRET');
-    const PLAID_ENV = Deno.env.get('PLAID_ENV') || 'sandbox';
+    // Initialize Supabase client to read from Vault
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
+    // Get Plaid credentials from Supabase Vault
+    // Note: The user created secrets named: client_id, secret, environment
+    const { data: clientIdData, error: clientIdError } = await supabaseClient
+      .from('vault.decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'client_id')
+      .single();
+
+    const { data: secretData, error: secretError } = await supabaseClient
+      .from('vault.decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'secret')
+      .single();
+
+    const { data: envData, error: envError } = await supabaseClient
+      .from('vault.decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'environment')
+      .single();
+
+    if (clientIdError || secretError || !clientIdData || !secretData) {
+      throw new Error('Plaid credentials not found in Vault');
+    }
+
+    const PLAID_CLIENT_ID = clientIdData.decrypted_secret;
+    const PLAID_SECRET = secretData.decrypted_secret;
+    const PLAID_ENV = envData?.decrypted_secret || 'sandbox';
 
     if (!PLAID_CLIENT_ID || !PLAID_SECRET) {
       throw new Error('Plaid credentials not configured');
@@ -64,13 +93,8 @@ serve(async (req) => {
       access_token: accessToken,
     });
 
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    );
-
     // Store the access token and item ID in Supabase
+    // (supabaseClient already initialized at the top for Vault access)
     const { error: dbError } = await supabaseClient
       .from('plaid_items')
       .insert({

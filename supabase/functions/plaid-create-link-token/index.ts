@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from 'npm:plaid@15.0.0';
 
 const corsHeaders = {
@@ -13,10 +14,39 @@ serve(async (req) => {
   }
 
   try {
-    // Get Plaid credentials from environment variables
-    const PLAID_CLIENT_ID = Deno.env.get('PLAID_CLIENT_ID');
-    const PLAID_SECRET = Deno.env.get('PLAID_SECRET');
-    const PLAID_ENV = Deno.env.get('PLAID_ENV') || 'sandbox';
+    // Initialize Supabase client to read from Vault
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
+    // Get Plaid credentials from Supabase Vault
+    // Note: The user created secrets named: client_id, secret, environment
+    const { data: clientIdData, error: clientIdError } = await supabaseClient
+      .from('vault.decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'client_id')
+      .single();
+
+    const { data: secretData, error: secretError } = await supabaseClient
+      .from('vault.decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'secret')
+      .single();
+
+    const { data: envData, error: envError } = await supabaseClient
+      .from('vault.decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'environment')
+      .single();
+
+    if (clientIdError || secretError || !clientIdData || !secretData) {
+      throw new Error('Plaid credentials not found in Vault');
+    }
+
+    const PLAID_CLIENT_ID = clientIdData.decrypted_secret;
+    const PLAID_SECRET = secretData.decrypted_secret;
+    const PLAID_ENV = envData?.decrypted_secret || 'sandbox';
 
     if (!PLAID_CLIENT_ID || !PLAID_SECRET) {
       throw new Error('Plaid credentials not configured');
