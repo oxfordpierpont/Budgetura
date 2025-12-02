@@ -48,19 +48,27 @@
 
 ### Step 3: Configure Supabase Secrets
 
-**Add Plaid credentials to Supabase:**
-1. In Supabase dashboard, go to **Settings** (gear icon in sidebar)
-2. Navigate to **Edge Functions** section
-3. Scroll down to **Secrets** section
-4. Click **Add new secret** and add these three secrets:
+**For Self-Hosted Supabase (your setup at supabase.sec-admn.com):**
 
-   | Name | Value | Example |
-   |------|-------|---------|
-   | `PLAID_CLIENT_ID` | Your Plaid Client ID | `63a1b2c3d4e5f6g7h8i9j0k1` |
-   | `PLAID_SECRET` | Your Plaid Sandbox Secret | `abc123def456ghi789...` |
-   | `PLAID_ENV` | `sandbox` (for testing) | `sandbox` |
+The secrets configuration is different from Supabase Cloud. You need to add these three secrets:
 
-5. Click **Save** after adding each secret
+| Name | Value | Example |
+|------|-------|---------|
+| `PLAID_CLIENT_ID` | Your Plaid Client ID | `63a1b2c3d4e5f6g7h8i9j0k1` |
+| `PLAID_SECRET` | Your Plaid Sandbox Secret | `abc123def456ghi789...` |
+| `PLAID_ENV` | `sandbox` (for testing) | `sandbox` |
+
+**📖 See detailed guide:** [supabase/SELF_HOSTED_SECRETS_SETUP.md](supabase/SELF_HOSTED_SECRETS_SETUP.md)
+
+**Quick locations to check in your dashboard:**
+1. **Project Settings** → Look for Environment Variables or Vault
+2. **Edge Functions** → Click a function → Look for Configuration/Environment
+3. **Database** → Vault section (for storing secrets)
+
+If you can't find these sections, you may need to configure secrets through:
+- The Supabase CLI (if you have access)
+- Docker environment variables (if running in Docker)
+- Server configuration files
 
 ⚠️ **Important:** Use Sandbox credentials for testing. Switch to Production credentials only when ready for live banking data.
 
