@@ -12,7 +12,8 @@ import {
   Settings,
   ShieldCheck,
   Brain,
-  Calendar
+  Calendar,
+  Building2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../src/hooks/useAuth';
@@ -118,17 +119,24 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                 label="Bills & Expenses"
             />
             
-            <NavItem 
+            <NavItem
                 active={currentView === 'goals'}
                 onClick={() => handleNav('goals')}
-                icon={<Target size={20} />} 
+                icon={<Target size={20} />}
                 label="Financial Goals"
             />
-            
-            <NavItem 
+
+            <NavItem
+                active={currentView === 'bank-accounts'}
+                onClick={() => handleNav('bank-accounts')}
+                icon={<Building2 size={20} />}
+                label="Bank Accounts"
+            />
+
+            <NavItem
                 active={currentView === 'action-plan'}
                 onClick={() => handleNav('action-plan')}
-                icon={<CalendarCheck size={20} />} 
+                icon={<CalendarCheck size={20} />}
                 label="Debt Action Plan"
             />
             

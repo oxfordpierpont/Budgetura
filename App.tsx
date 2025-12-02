@@ -24,6 +24,7 @@ import GoalManager from './components/GoalManager';
 import ActionPlanView from './components/ActionPlanView';
 import ProgressView from './components/ProgressView';
 import FloatingChatPanel from './components/FloatingChatPanel';
+import { BankAccounts } from './components/BankAccounts';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -59,6 +60,8 @@ function MainApp() {
                 return <BillManager />;
             case 'goals':
                 return <GoalManager />;
+            case 'bank-accounts':
+                return <BankAccounts />;
             case 'action-plan':
                 return <ActionPlanView />;
             case 'progress':
