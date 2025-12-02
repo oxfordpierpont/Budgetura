@@ -1,10 +1,11 @@
 import React from 'react';
 import { useDebt } from '../context/DebtContext';
-import { Plus, Bell, Search, ArrowUpRight, GraduationCap, Car, Home } from 'lucide-react';
+import { Plus, Bell, Search, ArrowUpRight, GraduationCap, Car, Home, Building2, Wallet } from 'lucide-react';
 import DebtBreakdownChart from './DebtBreakdownChart';
 import CreditCardItem from './CreditCardItem';
 import { BillWidget, GoalWidget, SavingsPromo } from './Widgets';
 import AskAIButton from './AskAIButton';
+import { usePlaid } from '../src/hooks/usePlaid';
 
 interface Props {
     setMobileMenuOpen: (open: boolean) => void;
@@ -13,7 +14,8 @@ interface Props {
 
 const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
   const { cards, loans, bills, goals, createSnapshot, settings } = useDebt();
-  
+  const { accounts: plaidAccounts } = usePlaid();
+
   const handleAsk = (prompt: string) => {
       if (onAskAI) onAskAI(prompt);
   };
@@ -22,12 +24,16 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
   const totalDebt = cards.reduce((s, c) => s + c.balance, 0) + loans.reduce((s, l) => s + l.currentBalance, 0);
   const monthlyPayments = cards.reduce((s, c) => s + c.minimumPayment, 0) + loans.reduce((s, l) => s + l.monthlyPayment, 0);
   const monthlyBillTotal = bills.reduce((s, b) => s + b.amount, 0);
-  
+
   const dti = settings.monthlyIncome > 0 ? ((monthlyPayments + monthlyBillTotal) / settings.monthlyIncome) * 100 : 0;
-  
+
   const totalLimit = cards.reduce((s, c) => s + c.limit, 0);
   const totalCardBalance = cards.reduce((s, c) => s + c.balance, 0);
   const utilization = totalLimit > 0 ? (totalCardBalance / totalLimit) * 100 : 0;
+
+  // Plaid bank accounts total
+  const totalCash = plaidAccounts.reduce((sum, account) => sum + (account.current_balance || 0), 0);
+  const netWorth = totalCash - totalDebt;
 
   return (
       <div className="flex-1 flex flex-col md:flex-row h-full">
@@ -62,14 +68,18 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
             </div>
 
             {/* Metrics Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-6">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mt-6">
+                <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                    <p className="text-xs text-emerald-600 font-bold uppercase">Total Cash</p>
+                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${totalCash.toLocaleString()}</p>
+                </div>
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <p className="text-xs text-gray-500 font-bold uppercase">Total Debt</p>
                     <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${totalDebt.toLocaleString()}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <p className="text-xs text-gray-500 font-bold uppercase">Monthly Output</p>
-                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${(monthlyPayments + monthlyBillTotal).toLocaleString()}</p>
+                <div className={`p-4 rounded-2xl border ${netWorth >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'}`}>
+                    <p className={`text-xs font-bold uppercase ${netWorth >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Net Worth</p>
+                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${netWorth.toLocaleString()}</p>
                 </div>
                 <div className={`p-4 rounded-2xl border ${dti < 36 ? 'bg-emerald-50 border-emerald-100' : dti < 43 ? 'bg-yellow-50 border-yellow-100' : 'bg-red-50 border-red-100'}`}>
                     <p className={`text-xs font-bold uppercase ${dti < 36 ? 'text-emerald-600' : dti < 43 ? 'text-yellow-600' : 'text-red-600'}`}>DTI Ratio</p>
@@ -83,6 +93,38 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
           </header>
 
           <div className="p-4 md:p-8 space-y-6 md:space-y-8 pb-20 md:pb-8">
+            {/* Bank Accounts Section */}
+            {plaidAccounts.length > 0 && (
+              <section className="bg-white p-4 md:p-6 rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-gray-100">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-gray-900 text-lg">Bank Accounts</h3>
+                  <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">{plaidAccounts.length} Connected</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {plaidAccounts.map(account => (
+                    <div key={account.id} className="bg-gradient-to-br from-emerald-50 to-blue-50 p-5 rounded-2xl border border-emerald-100 hover:shadow-md transition-all">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                          <Wallet size={18} />
+                        </div>
+                        <span className="text-xs text-emerald-600 bg-white px-2 py-1 rounded-lg font-bold">
+                          {account.subtype || account.type}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-gray-900 text-sm mb-1">{account.name}</h4>
+                      {account.mask && (
+                        <p className="text-xs text-gray-500 mb-3">••{account.mask}</p>
+                      )}
+                      <p className="text-2xl font-bold text-gray-900">${account.current_balance?.toLocaleString() || '0'}</p>
+                      {account.available_balance !== null && account.available_balance !== account.current_balance && (
+                        <p className="text-xs text-gray-500 mt-1">Available: ${account.available_balance?.toLocaleString()}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Debt Chart Section */}
             <section className="bg-white p-4 md:p-6 rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-gray-100 relative group/section">
                 <div className="flex justify-between items-center mb-6">
