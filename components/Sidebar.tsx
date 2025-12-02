@@ -76,9 +76,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                 {/* Logo */}
                 <div className="flex justify-center w-full mb-8">
                     <img
-                        src="/assets/images/Budgetura-logo-long.png"
+                        src="/assets/images/Budgetura-logo-long-white.png"
                         alt="Budgetura Logo"
-                        className="w-[60%] h-auto object-contain"
+                        className="w-[40%] h-auto object-contain"
                     />
                 </div> 
 
