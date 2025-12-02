@@ -106,7 +106,8 @@ app.post('/api/plaid/create-link-token', async (req, res) => {
     }
 
     // Create link token
-    const response = await plaidClient.linkTokenCreate({
+    // Following Plaid's official Quickstart pattern
+    const request = {
       user: {
         client_user_id: userId,
       },
@@ -114,9 +115,14 @@ app.post('/api/plaid/create-link-token', async (req, res) => {
       products: [Products.Transactions, Products.Auth],
       country_codes: [CountryCode.Us],
       language: 'en',
-    });
+      // Optional: Add webhook for asynchronous updates
+      // webhook: 'https://your-domain.com/plaid/webhook',
+      // Optional: Add redirect_uri for OAuth institutions
+      // redirect_uri: 'https://your-domain.com/oauth-callback',
+    };
 
-    res.json({ link_token: response.data.link_token });
+    const createTokenResponse = await plaidClient.linkTokenCreate(request);
+    res.json(createTokenResponse.data);
   } catch (error) {
     console.error('Error creating Plaid link token:', error);
     res.status(500).json({ error: error.message });

@@ -32,9 +32,24 @@ export const PlaidLink: React.FC<PlaidLinkProps> = ({ onSuccess }) => {
   }, [user, onSuccess]);
 
   // Initialize Plaid Link
+  // Following Plaid's official React pattern
   const { open, ready } = usePlaidLink({
     token: linkToken,
     onSuccess: onPlaidSuccess,
+    onExit: (err, metadata) => {
+      // User exited the Link flow
+      if (err != null) {
+        console.error('Plaid Link error:', err);
+        toast.error('Connection failed. Please try again.');
+      }
+      // Log metadata for debugging/support
+      console.log('Plaid Link exit:', metadata);
+      setLoading(false);
+    },
+    onEvent: (eventName, metadata) => {
+      // Optional: Track Link flow events for analytics
+      console.log('Plaid Link event:', eventName, metadata);
+    },
   });
 
   // Generate link token and open Plaid Link
