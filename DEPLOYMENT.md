@@ -52,10 +52,16 @@ VITE_APP_TITLE=Budgetura
    Node Version: 20.x
    ```
 
-5. **Environment Variables**
-   Add in Dokploy UI:
+5. **Build Arguments (CRITICAL!)**
+
+   **IMPORTANT:** Vite requires these at BUILD time, not runtime!
+
+   In Dokploy UI, navigate to **Build Configuration** → **Build Args** and add:
    - `VITE_SUPABASE_URL` → `https://supabase.sec-admn.com`
-   - `VITE_SUPABASE_ANON_KEY` → (your anon key)
+   - `VITE_SUPABASE_ANON_KEY` → (your anon key from Supabase)
+   - `VITE_APP_TITLE` → `Budgetura` (optional)
+
+   These must be configured as **build arguments**, not regular environment variables!
 
 6. **Deploy**
    - Click "Deploy" to start first deployment
@@ -166,9 +172,9 @@ In Dokploy dashboard:
 
 ## Build Configuration
 
-### Dockerfile (if needed for Dokploy):
+### Dockerfile:
 
-Create `Dockerfile` in project root:
+The `Dockerfile` in the project root is configured to accept build arguments:
 
 ```dockerfile
 FROM node:20-alpine AS builder
@@ -176,9 +182,20 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
+
+# Accept build arguments for environment variables
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_APP_TITLE=Budgetura
+
+# Set environment variables for the build
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_APP_TITLE=$VITE_APP_TITLE
+
 RUN npm run build
 
 FROM nginx:alpine
@@ -188,6 +205,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
+
+**Key Point:** The `ARG` and `ENV` directives ensure environment variables are available during the build process.
 
 ### nginx.conf:
 
@@ -290,6 +309,20 @@ npm install
 npm run build
 ```
 
+### Black Screen or Blank Page
+
+**Most common cause:** Environment variables not set as build arguments!
+
+1. Check browser console (F12) for errors like:
+   - "Supabase credentials not found"
+   - Failed API calls to Supabase
+
+2. **Fix:** Configure build arguments in Dokploy:
+   - Go to Dokploy → Budgetura → Settings → Build Configuration
+   - Find "Build Args" section
+   - Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+   - Redeploy the application
+
 ### Authentication Issues
 
 **Supabase not connecting:**
@@ -297,6 +330,7 @@ npm run build
 - Check anon key is valid
 - Verify self-hosted Supabase is accessible
 - Check CORS settings in Supabase
+- **Most important:** Ensure build arguments are configured in Dokploy!
 
 **Email verification not working:**
 - Verify redirect URLs in Supabase

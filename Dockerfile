@@ -12,6 +12,16 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Accept build arguments for environment variables
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_APP_TITLE=Budgetura
+
+# Set environment variables for the build
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_APP_TITLE=$VITE_APP_TITLE
+
 # Build the application
 RUN npm run build
 

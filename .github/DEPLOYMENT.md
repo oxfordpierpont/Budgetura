@@ -50,14 +50,31 @@ After pushing to GitHub, deploy via Dokploy:
 
 ### 3. Environment Variables
 
-Environment variables are managed in Dokploy, NOT in the repository:
+Environment variables are managed in Dokploy, NOT in the repository.
 
-- `VITE_SUPABASE_URL` - Supabase instance URL
+**CRITICAL: Vite requires environment variables at BUILD time!**
+
+You MUST configure these as **Build Arguments** in Dokploy:
+
+- `VITE_SUPABASE_URL` - Supabase instance URL (e.g., https://supabase.sec-admn.com)
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `GEMINI_API_KEY` - Google Gemini API key
+- `VITE_APP_TITLE` - App title (optional, defaults to "Budgetura")
 
-**To update environment variables:**
-- Go to Dokploy dashboard → Budgetura → Settings → Environment
+**To configure in Dokploy:**
+
+1. Go to Dokploy dashboard → Budgetura application
+2. Navigate to **Settings** → **Build Configuration**
+3. Find **Build Args** section
+4. Add the following build arguments:
+   ```
+   VITE_SUPABASE_URL=https://supabase.sec-admn.com
+   VITE_SUPABASE_ANON_KEY=your_anon_key_here
+   VITE_APP_TITLE=Budgetura
+   ```
+5. Save and redeploy
+
+**Why Build Args?**
+Vite bundles environment variables into the JavaScript at build time. Setting them as regular environment variables won't work because they need to be available when `npm run build` runs inside the Docker container.
 
 ## Architecture
 
