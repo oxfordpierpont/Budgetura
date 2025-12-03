@@ -50,7 +50,7 @@ interface Props {
 }
 
 const ProgressView: React.FC<Props> = ({ onNavigate }) => {
-  const { cards, loans, snapshots, setActiveItemId } = useDebt();
+  const { cards, loans, snapshots } = useDebt();
   const [timeRange, setTimeRange] = useState<TimeRange>('year');
   const [selectedCategory, setSelectedCategory] = useState<{ title: string, items: any[], type: 'Credit' | 'Loan' } | null>(null);
 
@@ -102,16 +102,16 @@ const ProgressView: React.FC<Props> = ({ onNavigate }) => {
 
   const handleNavigateToItem = (item: any) => {
       if (!onNavigate) return;
-      
-      setActiveItemId(item.id);
-      
+
+      // Close modal first
+      setSelectedCategory(null);
+
       // Determine destination based on type/props
       if ('balance' in item) { // It's a card
           onNavigate('credit-cards');
       } else { // It's a loan
           onNavigate('loans');
       }
-      setSelectedCategory(null);
   };
 
   return (
