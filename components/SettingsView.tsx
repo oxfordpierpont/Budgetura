@@ -242,7 +242,7 @@ const SettingsView = () => {
     }
 
     const confirmed = window.confirm(
-      'Are you sure you want to delete ALL your financial data? This action cannot be undone.\n\nThis will permanently delete:\n• All credit cards\n• All loans\n• All bills\n• All goals\n• All snapshots'
+      'Are you sure you want to delete ALL your financial data? This action cannot be undone.\n\nThis will permanently delete:\n• All credit cards\n• All loans\n• All mortgages\n• All bills\n• All goals\n• All snapshots'
     );
 
     if (!confirmed) return;

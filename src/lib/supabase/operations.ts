@@ -442,6 +442,14 @@ export const clearAllUserData = async (userId: string) => {
 
   if (loansError) throw loansError;
 
+  // Delete all mortgages
+  const { error: mortgagesError } = await supabase
+    .from('mortgages')
+    .delete()
+    .eq('user_id', userId);
+
+  if (mortgagesError) throw mortgagesError;
+
   // Delete all bills
   const { error: billsError } = await supabase
     .from('bills')
