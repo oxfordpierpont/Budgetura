@@ -16,7 +16,7 @@ const BankingSummaryCard: React.FC<Props> = ({ accounts = [], onNavigate }) => {
     const totalCash = cashAccounts.reduce((sum, a) => sum + (a.available_balance || a.current_balance), 0);
 
     return (
-        <div className="bg-[#1e293b] rounded-[32px] p-6 md:p-8 text-white relative overflow-hidden shadow-xl w-full">
+        <div className="bg-[#081016] rounded-[32px] p-6 md:p-8 text-white relative overflow-hidden shadow-xl w-full">
             {/* Background Gradients */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none"></div>
