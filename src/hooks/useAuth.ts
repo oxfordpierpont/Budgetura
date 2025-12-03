@@ -23,17 +23,40 @@ export function useAuth() {
                 session,
                 loading: false,
             });
+        }).catch((error) => {
+            console.error('Error getting session:', error);
+            // If localStorage is full, clear it and retry
+            if (error.message?.includes('quota') || error.message?.includes('Storage')) {
+                console.warn('Clearing localStorage due to quota error');
+                localStorage.clear();
+                window.location.reload();
+            }
+            setAuthState({
+                user: null,
+                session: null,
+                loading: false,
+            });
         });
 
         // Listen for auth changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
-            setAuthState({
-                user: session?.user ?? null,
-                session,
-                loading: false,
-            });
+            try {
+                setAuthState({
+                    user: session?.user ?? null,
+                    session,
+                    loading: false,
+                });
+            } catch (error: any) {
+                console.error('Error updating auth state:', error);
+                // If localStorage is full, clear it
+                if (error.message?.includes('quota') || error.message?.includes('Storage')) {
+                    console.warn('Clearing localStorage due to quota error');
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -68,13 +91,29 @@ export function useAuth() {
     };
 
     const signIn = async (email: string, password: string) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        if (error) throw error;
-        return data;
+            if (error) throw error;
+            return data;
+        } catch (error: any) {
+            // Handle localStorage quota errors
+            if (error.message?.includes('quota') || error.message?.includes('Storage')) {
+                console.warn('localStorage quota exceeded during sign in, clearing...');
+                localStorage.clear();
+                // Retry the sign in after clearing
+                const { data, error: retryError } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (retryError) throw retryError;
+                return data;
+            }
+            throw error;
+        }
     };
 
     const signOut = async () => {
