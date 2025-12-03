@@ -1,5 +1,5 @@
 
-import { CreditCard, Loan, Bill, Goal, DebtSummary } from './types';
+import { CreditCard, Loan, Bill, Goal, DebtSummary, Mortgage } from './types';
 
 // --- Dynamic Date Helpers for Realistic Demo Data ---
 const today = new Date();
@@ -406,5 +406,125 @@ export const GOALS: Goal[] = [
     monthlyContribution: 250,
     remainingMonths: 26,
     priority: 'High'
+  }
+];
+
+export const MORTGAGES: Mortgage[] = [
+  {
+    id: '1',
+    // Property Information
+    propertyAddress: '456 Bellevue Way NE',
+    propertyCity: 'Bellevue',
+    propertyState: 'WA',
+    propertyZip: '98004',
+    propertyType: 'Single Family',
+    propertyValue: 650000.00,
+
+    // Loan Details - WELL MANAGED
+    lender: 'Wells Fargo Home Mortgage',
+    accountNumber: '8843',
+    loanType: 'Conventional',
+    originalPrincipal: 400000.00,
+    currentBalance: 200000.00, // 50% LTV - excellent equity position
+    interestRate: 3.25, // Great rate from refinancing
+    interestType: 'Fixed',
+    termMonths: 360,
+    monthlyPayment: 1740.00,
+    extraPayment: 500.00, // Aggressively paying down principal
+
+    // Additional Monthly Costs
+    monthlyPropertyTax: 520.00,
+    monthlyInsurance: 185.00,
+    monthlyHOA: 0,
+    pmi: 0, // No PMI due to low LTV
+    pmiRemovalLTV: 80,
+
+    // Dates
+    startDate: '2015-06-01',
+    maturityDate: '2045-06-01',
+    dueDate: getRelativeDayOfMonth(1),
+
+    // Status & Settings
+    status: 'Active',
+    autoPay: true,
+    notes: 'Refinanced in 2020 from 4.5% to 3.25%. Making extra payments to pay off early. Home value has appreciated significantly.'
+  },
+  {
+    id: '2',
+    // Property Information
+    propertyAddress: '789 Redmond Ridge Ln',
+    propertyCity: 'Redmond',
+    propertyState: 'WA',
+    propertyZip: '98052',
+    propertyType: 'Townhouse',
+    propertyValue: 425000.00,
+
+    // Loan Details - AVERAGE
+    lender: 'Bank of America',
+    accountNumber: '5521',
+    loanType: 'FHA',
+    originalPrincipal: 340000.00,
+    currentBalance: 315000.00, // 74% LTV - average equity
+    interestRate: 4.5, // Decent market rate
+    interestType: 'Fixed',
+    termMonths: 360,
+    monthlyPayment: 1595.00,
+    extraPayment: 0, // No extra payments
+
+    // Additional Monthly Costs
+    monthlyPropertyTax: 385.00,
+    monthlyInsurance: 145.00,
+    monthlyHOA: 225.00,
+    pmi: 125.00, // Still paying PMI, close to removal threshold
+    pmiRemovalLTV: 80,
+
+    // Dates
+    startDate: '2022-03-15',
+    maturityDate: '2052-03-15',
+    dueDate: getRelativeDayOfMonth(15),
+
+    // Status & Settings
+    status: 'Active',
+    autoPay: true,
+    notes: 'First-time home buyer FHA loan. PMI should drop off in about 2 years at current pace.'
+  },
+  {
+    id: '3',
+    // Property Information
+    propertyAddress: '321 Pacific Ave Unit 203',
+    propertyCity: 'Tacoma',
+    propertyState: 'WA',
+    propertyZip: '98402',
+    propertyType: 'Condo',
+    propertyValue: 275000.00,
+
+    // Loan Details - NEAR FORECLOSURE
+    lender: 'Quicken Loans',
+    accountNumber: '9934',
+    loanType: 'Conventional',
+    originalPrincipal: 265000.00,
+    currentBalance: 262000.00, // 95% LTV - very little equity, underwater risk
+    interestRate: 6.75, // High rate, risky loan
+    interestType: 'Variable',
+    termMonths: 360,
+    monthlyPayment: 1700.00,
+    extraPayment: 0,
+
+    // Additional Monthly Costs
+    monthlyPropertyTax: 295.00,
+    monthlyInsurance: 115.00,
+    monthlyHOA: 385.00, // High HOA fees eating into budget
+    pmi: 245.00, // High PMI due to low down payment
+    pmiRemovalLTV: 78,
+
+    // Dates
+    startDate: '2023-08-01',
+    maturityDate: '2053-08-01',
+    dueDate: getRelativeDayOfMonth(-5), // Due 5 days ago - OVERDUE
+
+    // Status & Settings
+    status: 'In Forbearance',
+    autoPay: false, // Disabled due to insufficient funds
+    notes: 'Entered forbearance program after missing 2 payments. Job loss in Sept 2024. Working with lender on loan modification. Variable rate has increased twice since origination. Total housing cost $2,740/mo is unsustainable.'
   }
 ];
