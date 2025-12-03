@@ -6,11 +6,13 @@ import { Building2, CreditCard, Trash2, RefreshCw, AlertCircle, Plus, Wallet, Sh
  * For production, uncomment your original imports and remove the mock data/hooks.
  */
 
---- Original Imports (Uncomment for Production) ---
+/* --- Original Imports (Uncomment for Production) ---
 import { usePlaid } from '../src/hooks/usePlaid';
 import { PlaidLink } from './PlaidLink';
 import { disconnectPlaidItem } from '../src/lib/supabase/operations';
 import toast from 'react-hot-toast';
+*/
+
 
 // --- MOCK DEFINITIONS FOR PREVIEW (Remove in Production) ---
 const toast = {
@@ -19,98 +21,98 @@ const toast = {
 };
 
 const disconnectPlaidItem = async (itemId: string) => {
-    return new Promise(resolve => setTimeout(resolve, 1000));
+  return new Promise(resolve => setTimeout(resolve, 1000));
 };
 
 const PlaidLink = ({ onSuccess }: { onSuccess: () => void }) => {
-    return (
-        <button 
-            onClick={() => setTimeout(onSuccess, 1000)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"
-        >
-            <Plus size={18} />
-            Connect Bank Account
-        </button>
-    );
+  return (
+    <button
+      onClick={() => setTimeout(onSuccess, 1000)}
+      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"
+    >
+      <Plus size={18} />
+      Connect Bank Account
+    </button>
+  );
 };
 
 const MOCK_ITEMS = [
-    { 
-        id: '1', 
-        item_id: 'item_1', 
-        institution_name: 'Chase', 
-        created_at: '2025-02-15T10:00:00Z', 
-        logo_url: null 
-    },
-    { 
-        id: '2', 
-        item_id: 'item_2', 
-        institution_name: 'Wells Fargo', 
-        created_at: '2025-03-01T14:30:00Z', 
-        logo_url: null 
-    }
+  {
+    id: '1',
+    item_id: 'item_1',
+    institution_name: 'Chase',
+    created_at: '2025-02-15T10:00:00Z',
+    logo_url: null
+  },
+  {
+    id: '2',
+    item_id: 'item_2',
+    institution_name: 'Wells Fargo',
+    created_at: '2025-03-01T14:30:00Z',
+    logo_url: null
+  }
 ];
 
 const MOCK_ACCOUNTS = [
-    { 
-        id: 'acc_1', 
-        item_id: 'item_1', 
-        name: 'Chase Total Checking', 
-        mask: '4455', 
-        type: 'depository', 
-        subtype: 'checking', 
-        current_balance: 4520.50, 
-        available_balance: 4520.50, 
-        official_name: 'Chase Total Checking' 
-    },
-    { 
-        id: 'acc_2', 
-        item_id: 'item_1', 
-        name: 'Chase Savings', 
-        mask: '8892', 
-        type: 'depository', 
-        subtype: 'savings', 
-        current_balance: 12050.00, 
-        available_balance: 12050.00, 
-        official_name: 'Chase Savings Plus' 
-    },
-    { 
-        id: 'acc_3', 
-        item_id: 'item_2', 
-        name: 'Platinum Card', 
-        mask: '3001', 
-        type: 'credit', 
-        subtype: 'credit card', 
-        current_balance: 540.20, 
-        available_balance: 9460.00, 
-        official_name: 'Wells Fargo Platinum Visa' 
-    }
+  {
+    id: 'acc_1',
+    item_id: 'item_1',
+    name: 'Chase Total Checking',
+    mask: '4455',
+    type: 'depository',
+    subtype: 'checking',
+    current_balance: 4520.50,
+    available_balance: 4520.50,
+    official_name: 'Chase Total Checking'
+  },
+  {
+    id: 'acc_2',
+    item_id: 'item_1',
+    name: 'Chase Savings',
+    mask: '8892',
+    type: 'depository',
+    subtype: 'savings',
+    current_balance: 12050.00,
+    available_balance: 12050.00,
+    official_name: 'Chase Savings Plus'
+  },
+  {
+    id: 'acc_3',
+    item_id: 'item_2',
+    name: 'Platinum Card',
+    mask: '3001',
+    type: 'credit',
+    subtype: 'credit card',
+    current_balance: 540.20,
+    available_balance: 9460.00,
+    official_name: 'Wells Fargo Platinum Visa'
+  }
 ];
 
 const usePlaid = () => {
-    const [loading, setLoading] = useState(true);
-    const [items, setItems] = useState<any[]>([]);
-    const [accounts, setAccounts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
 
-    useEffect(() => {
-        // Simulate load
-        setTimeout(() => {
-            setItems(MOCK_ITEMS);
-            setAccounts(MOCK_ACCOUNTS);
-            setLoading(false);
-        }, 800);
-    }, []);
+  useEffect(() => {
+    // Simulate load
+    setTimeout(() => {
+      setItems(MOCK_ITEMS);
+      setAccounts(MOCK_ACCOUNTS);
+      setLoading(false);
+    }, 800);
+  }, []);
 
-    const refetch = async () => {
-        setLoading(true);
-        setTimeout(() => {
-            setItems(MOCK_ITEMS); // Reset or update logic here
-            setAccounts(MOCK_ACCOUNTS);
-            setLoading(false);
-        }, 800);
-    };
+  const refetch = async () => {
+    setLoading(true);
+    setTimeout(() => {
+      setItems(MOCK_ITEMS); // Reset or update logic here
+      setAccounts(MOCK_ACCOUNTS);
+      setLoading(false);
+    }, 800);
+  };
 
-    return { accounts, items, loading, error: null, refetch };
+  return { accounts, items, loading, error: null, refetch };
 };
 
 // --- COMPONENT START ---
@@ -151,10 +153,10 @@ export const BankAccounts: React.FC = () => {
     return (
       <div className="flex h-full items-center justify-center p-8 bg-[#F3F4F6]">
         <div className="flex flex-col items-center gap-3">
-             <div className="bg-white p-4 rounded-full shadow-sm">
-                <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-             </div>
-             <p className="text-gray-500 font-medium">Syncing with Plaid...</p>
+          <div className="bg-white p-4 rounded-full shadow-sm">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+          <p className="text-gray-500 font-medium">Syncing with Plaid...</p>
         </div>
       </div>
     );
@@ -183,7 +185,7 @@ export const BankAccounts: React.FC = () => {
       {items.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-[32px] border border-dashed border-gray-200 shadow-sm flex flex-col items-center">
           <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-6">
-             <Building2 size={40} />
+            <Building2 size={40} />
           </div>
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
             No Bank Accounts Connected
@@ -207,36 +209,36 @@ export const BankAccounts: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-gray-50/50 border-b border-gray-100 gap-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-blue-600 shadow-sm">
-                        <Building2 size={24} />
+                      <Building2 size={24} />
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-gray-900">
                         {item.institution_name || 'Unknown Institution'}
                       </h3>
                       <div className="flex items-center gap-2 mt-0.5">
-                          <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                            Connected {new Date(item.created_at).toLocaleDateString()}
-                          </p>
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
+                          Connected {new Date(item.created_at).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => handleDisconnect(item.item_id)}
                     disabled={disconnecting === item.item_id}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50"
                   >
                     {disconnecting === item.item_id ? (
-                        <>
-                            <RefreshCw size={14} className="animate-spin" />
-                            Disconnecting...
-                        </>
+                      <>
+                        <RefreshCw size={14} className="animate-spin" />
+                        Disconnecting...
+                      </>
                     ) : (
-                        <>
-                            <Trash2 size={16} />
-                            Disconnect
-                        </>
+                      <>
+                        <Trash2 size={16} />
+                        Disconnect
+                      </>
                     )}
                   </button>
                 </div>
@@ -255,10 +257,9 @@ export const BankAccounts: React.FC = () => {
                       >
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                           <div className="flex items-center gap-4 w-full sm:w-auto">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                                account.type === 'credit' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
-                            }`}>
-                                {account.type === 'credit' ? <CreditCard size={18} /> : <Wallet size={18} />}
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${account.type === 'credit' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
+                              }`}>
+                              {account.type === 'credit' ? <CreditCard size={18} /> : <Wallet size={18} />}
                             </div>
                             <div>
                               <p className="font-bold text-gray-900 text-base flex items-center gap-2">
@@ -270,30 +271,30 @@ export const BankAccounts: React.FC = () => {
                                 )}
                               </p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                  {account.official_name && (
-                                    <span className="text-xs text-gray-500 hidden sm:inline">
-                                      {account.official_name}
-                                    </span>
-                                  )}
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
-                                    {account.subtype || account.type}
+                                {account.official_name && (
+                                  <span className="text-xs text-gray-500 hidden sm:inline">
+                                    {account.official_name}
                                   </span>
+                                )}
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                  {account.subtype || account.type}
+                                </span>
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="text-right w-full sm:w-auto bg-gray-50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-gray-100 sm:border-none flex justify-between sm:block items-center">
-                             <span className="text-xs font-bold text-gray-400 uppercase sm:hidden">Current Balance</span>
-                             <div>
-                                <p className={`font-bold text-lg ${account.type === 'credit' ? 'text-gray-900' : 'text-emerald-600'}`}>
+                            <span className="text-xs font-bold text-gray-400 uppercase sm:hidden">Current Balance</span>
+                            <div>
+                              <p className={`font-bold text-lg ${account.type === 'credit' ? 'text-gray-900' : 'text-emerald-600'}`}>
                                 {formatCurrency(account.current_balance)}
-                                </p>
-                                {account.available_balance !== null && (
+                              </p>
+                              {account.available_balance !== null && (
                                 <p className="text-xs font-medium text-gray-400 mt-0.5">
-                                    Available: {formatCurrency(account.available_balance)}
+                                  Available: {formatCurrency(account.available_balance)}
                                 </p>
-                                )}
-                             </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
