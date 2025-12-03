@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                     <img
                         src="/assets/images/Budgetura-logo-long-white.png"
                         alt="Budgetura Logo"
-                        className="w-[80%] h-auto object-contain"
+                        className="w-[90%] h-auto object-contain"
                     />
                 </div> 
 
@@ -90,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                 active={currentView === 'dashboard'} 
                 onClick={() => handleNav('dashboard')}
                 icon={<LayoutDashboard size={20} />} 
-                label="My Debt Dashboard"
+                label="My Dashboard"
                 showDot 
             />
 
@@ -119,28 +119,28 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                 active={currentView === 'goals'}
                 onClick={() => handleNav('goals')}
                 icon={<Target size={20} />}
-                label="Financial Goals"
+                label="Financial Goals*"
             />
 
             <NavItem
                 active={currentView === 'bank-accounts'}
                 onClick={() => handleNav('bank-accounts')}
                 icon={<Building2 size={20} />}
-                label="Bank Accounts"
+                label="My Accounts*"
             />
 
             <NavItem
                 active={currentView === 'action-plan'}
                 onClick={() => handleNav('action-plan')}
                 icon={<CalendarCheck size={20} />}
-                label="Debt Action Plan"
+                label="Debt Action Plan*"
             />
             
             <NavItem 
                 active={currentView === 'progress'}
                 onClick={() => handleNav('progress')}
                 icon={<TrendingUp size={20} />} 
-                label="Progress Tracking"
+                label="Progress Tracking*"
             />
             
             {/* AI Chat Link */}
@@ -173,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
               </div>
-              <span className="text-base font-bold tracking-wide">Live Debt Coaching</span>
+              <span className="text-base font-bold tracking-wide">Request Live Debt Coaching</span>
            </a>
         </div>
 
