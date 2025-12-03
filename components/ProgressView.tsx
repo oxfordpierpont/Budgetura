@@ -46,7 +46,7 @@ const generateTrendData = (currentDebt: number, range: TimeRange) => {
 };
 
 interface Props {
-    onNavigate?: (view: string) => void;
+    onNavigate?: (view: string, itemId?: string) => void;
 }
 
 const ProgressView: React.FC<Props> = ({ onNavigate }) => {
@@ -106,11 +106,11 @@ const ProgressView: React.FC<Props> = ({ onNavigate }) => {
       // Close modal first
       setSelectedCategory(null);
 
-      // Determine destination based on type/props
+      // Determine destination based on type/props and pass item ID
       if ('balance' in item) { // It's a card
-          onNavigate('credit-cards');
+          onNavigate('credit-cards', item.id);
       } else { // It's a loan
-          onNavigate('loans');
+          onNavigate('loans', item.id);
       }
   };
 

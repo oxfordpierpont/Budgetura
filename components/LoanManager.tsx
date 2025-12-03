@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDebt } from '../context/DebtContext';
 import { 
   Plus, Trash2, Wallet, Car, GraduationCap, Home, Percent, Calendar, 
@@ -83,7 +83,12 @@ const getOrdinal = (n: number) => {
 
 type SortOption = 'balance' | 'rate' | 'payment' | 'name';
 
-const LoanManager = () => {
+interface LoanManagerProps {
+  activeItemId?: string | null;
+  onItemExpanded?: () => void;
+}
+
+const LoanManager: React.FC<LoanManagerProps> = ({ activeItemId, onItemExpanded }) => {
   const { loans, addLoan, deleteLoan, updateLoan, setAIChatState } = useDebt();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
@@ -305,13 +310,15 @@ const LoanManager = () => {
           ) : (
               <div className="grid gap-4">
                   {sortedLoans.map(loan => (
-                      <LoanRow 
-                          key={loan.id} 
-                          loan={loan} 
+                      <LoanRow
+                          key={loan.id}
+                          loan={loan}
                           onDelete={deleteLoan}
                           onEdit={setEditingLoan}
                           onViewHistory={setViewingHistory}
                           onAskAI={(msg) => setAIChatState({ isOpen: true, initialMessage: msg })}
+                          activeItemId={activeItemId}
+                          onItemExpanded={onItemExpanded}
                       />
                   ))}
               </div>
@@ -327,14 +334,29 @@ interface LoanRowProps {
     onEdit: (l: Loan) => void;
     onViewHistory: (l: Loan) => void;
     onAskAI: (msg: string) => void;
+    activeItemId?: string | null;
+    onItemExpanded?: () => void;
 }
 
-const LoanRow: React.FC<LoanRowProps> = ({ loan, onDelete, onEdit, onViewHistory, onAskAI }) => {
+const LoanRow: React.FC<LoanRowProps> = ({ loan, onDelete, onEdit, onViewHistory, onAskAI, activeItemId, onItemExpanded }) => {
     const [expanded, setExpanded] = useState(false);
     const [showInlineAI, setShowInlineAI] = useState(false);
     const [scenarioExtra, setScenarioExtra] = useState(100);
     const style = getLoanStyles(loan.type);
-    
+
+    // Auto-expand when this loan is the active item
+    useEffect(() => {
+        if (activeItemId === loan.id) {
+            setExpanded(true);
+            // Notify parent that expansion has occurred
+            onItemExpanded?.();
+            // Scroll into view smoothly
+            setTimeout(() => {
+                document.getElementById(`loan-${loan.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    }, [activeItemId, loan.id, onItemExpanded]);
+
     // Projections
     const stdSchedule = useMemo(() => generateAmortizationSchedule(loan.currentBalance, loan.rate, loan.termMonths, loan.monthlyPayment), [loan]);
     const accSchedule = useMemo(() => generateAmortizationSchedule(loan.currentBalance, loan.rate, loan.termMonths, loan.monthlyPayment + scenarioExtra), [loan, scenarioExtra]);
@@ -372,7 +394,7 @@ const LoanRow: React.FC<LoanRowProps> = ({ loan, onDelete, onEdit, onViewHistory
     else if (loan.type === 'Family') { collateralLabel = 'Relationship'; collateralValue = loan.relationshipType; }
 
     return (
-        <div className={`bg-white rounded-[24px] border border-gray-100 overflow-hidden transition-all duration-300 group ${expanded ? 'ring-2 ring-blue-500/5 shadow-xl' : `hover:border-transparent ${style.border} ${style.shadow}`}`}>
+        <div id={`loan-${loan.id}`} className={`bg-white rounded-[24px] border border-gray-100 overflow-hidden transition-all duration-300 group ${expanded ? 'ring-2 ring-blue-500/5 shadow-xl' : `hover:border-transparent ${style.border} ${style.shadow}`}`}>
             <div className="p-5 md:p-6 flex flex-col md:flex-row items-center gap-6 cursor-pointer relative" onClick={() => setExpanded(!expanded)}>
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${style.accent} opacity-0 group-hover:opacity-100 transition-opacity rounded-r-full`}></div>
                 <div className="flex-1 flex items-center gap-5 w-full md:w-auto">

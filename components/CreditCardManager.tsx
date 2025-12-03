@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDebt } from '../context/DebtContext';
 import { calculateMonthsToPayoff, calculateTotalInterest } from '../utils/calculations';
 import { Plus, Trash2, ChevronDown, ChevronUp, TrendingUp, CreditCard as CardIcon, ShieldCheck, Flame, ArrowRight, Wallet, Percent, Sparkles, ArrowUpDown, SlidersHorizontal, PiggyBank, Clock, Edit2, History, ArrowDown, ArrowUp, X, MessageCircle, CalendarCheck, Coins, Hash, Landmark, FileText, Gift, Zap } from 'lucide-react';
@@ -49,7 +49,12 @@ const getBrandStyles = (name: string) => {
 
 type SortOption = 'balance' | 'apr' | 'utilization' | 'name';
 
-const CreditCardManager = () => {
+interface CreditCardManagerProps {
+  activeItemId?: string | null;
+  onItemExpanded?: () => void;
+}
+
+const CreditCardManager: React.FC<CreditCardManagerProps> = ({ activeItemId, onItemExpanded }) => {
   const { cards, addCard, deleteCard, updateCard, setAIChatState } = useDebt();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
@@ -162,7 +167,7 @@ const CreditCardManager = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Credit Manager</h1>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Credit Card Manager</h1>
             <p className="text-gray-500 mt-1 font-medium">Optimize your payoffs and lower your interest.</p>
         </div>
         <button 
@@ -354,13 +359,15 @@ const CreditCardManager = () => {
         ) : (
             <div className="grid gap-4">
                 {sortedCards.map(card => (
-                  <CardRow 
-                    key={card.id} 
-                    card={card} 
-                    onDelete={deleteCard} 
+                  <CardRow
+                    key={card.id}
+                    card={card}
+                    onDelete={deleteCard}
                     onEdit={setEditingCard}
                     onViewHistory={setViewingHistory}
                     onAskAI={(msg) => setAIChatState({ isOpen: true, initialMessage: msg })}
+                    activeItemId={activeItemId}
+                    onItemExpanded={onItemExpanded}
                   />
                 ))}
             </div>
@@ -376,13 +383,28 @@ interface CardRowProps {
   onEdit: (card: CreditCard) => void;
   onViewHistory: (card: CreditCard) => void;
   onAskAI: (msg: string) => void;
+  activeItemId?: string | null;
+  onItemExpanded?: () => void;
 }
 
-const CardRow: React.FC<CardRowProps> = ({ card, onDelete, onEdit, onViewHistory, onAskAI }) => {
+const CardRow: React.FC<CardRowProps> = ({ card, onDelete, onEdit, onViewHistory, onAskAI, activeItemId, onItemExpanded }) => {
   const [expanded, setExpanded] = useState(false);
   const [showInlineAI, setShowInlineAI] = useState(false);
   const [scenarioPayment, setScenarioPayment] = useState(100);
   const brand = getBrandStyles(card.name);
+
+  // Auto-expand when this card is the active item
+  useEffect(() => {
+    if (activeItemId === card.id) {
+      setExpanded(true);
+      // Notify parent that expansion has occurred
+      onItemExpanded?.();
+      // Scroll into view smoothly
+      setTimeout(() => {
+        document.getElementById(`card-${card.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [activeItemId, card.id, onItemExpanded]);
 
   // Basic Calculations
   const minOnlyMonths = calculateMonthsToPayoff(card.balance, card.apr, card.minimumPayment);
@@ -423,7 +445,7 @@ const CardRow: React.FC<CardRowProps> = ({ card, onDelete, onEdit, onViewHistory
   const chartData = expanded ? generateChartData() : [];
 
   return (
-    <div className={`bg-white rounded-[24px] border border-gray-100 overflow-hidden transition-all duration-300 group ${expanded ? 'ring-2 ring-blue-500/5 shadow-xl' : `hover:border-transparent ${brand.border} ${brand.shadow}`}`}>
+    <div id={`card-${card.id}`} className={`bg-white rounded-[24px] border border-gray-100 overflow-hidden transition-all duration-300 group ${expanded ? 'ring-2 ring-blue-500/5 shadow-xl' : `hover:border-transparent ${brand.border} ${brand.shadow}`}`}>
       <div className="p-5 md:p-6 flex flex-col md:flex-row items-center gap-6 cursor-pointer relative" onClick={() => setExpanded(!expanded)}>
         <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${brand.accent} opacity-0 group-hover:opacity-100 transition-opacity rounded-r-full`}></div>
         <div className="flex-1 flex items-center gap-5 w-full md:w-auto">

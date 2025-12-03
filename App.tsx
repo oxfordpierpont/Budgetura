@@ -41,6 +41,7 @@ function MainApp() {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const [currentView, setCurrentView] = React.useState('dashboard');
     const [initialAiPrompt, setInitialAiPrompt] = React.useState('');
+    const [activeItemId, setActiveItemId] = React.useState<string | null>(null);
 
     const handleAskAI = (prompt: string) => {
         setInitialAiPrompt(prompt);
@@ -48,14 +49,19 @@ function MainApp() {
         setMobileMenuOpen(false);
     };
 
+    const handleNavigateWithItem = (view: string, itemId?: string) => {
+        setCurrentView(view);
+        setActiveItemId(itemId || null);
+    };
+
     const renderContent = () => {
         switch (currentView) {
             case 'dashboard':
                 return <DashboardView setMobileMenuOpen={setMobileMenuOpen} onAskAI={handleAskAI} onNavigate={setCurrentView} />;
             case 'credit-cards':
-                return <CreditCardManager />;
+                return <CreditCardManager activeItemId={activeItemId} onItemExpanded={() => setActiveItemId(null)} />;
             case 'loans':
-                return <LoanManager />;
+                return <LoanManager activeItemId={activeItemId} onItemExpanded={() => setActiveItemId(null)} />;
             case 'bills':
                 return <BillManager />;
             case 'goals':
@@ -65,7 +71,7 @@ function MainApp() {
             case 'action-plan':
                 return <ActionPlanView />;
             case 'progress':
-                return <ProgressView onNavigate={setCurrentView} />;
+                return <ProgressView onNavigate={handleNavigateWithItem} />;
             case 'ai-chat':
                 return <AIChatView initialPrompt={initialAiPrompt} onClose={() => setCurrentView('dashboard')} />;
             case 'settings':
