@@ -19,6 +19,7 @@ import SettingsView from './components/SettingsView';
 import AIChatView from './components/AIChatView';
 import CreditCardManager from './components/CreditCardManager';
 import LoanManager from './components/LoanManager';
+import MortgageManager from './components/MortgageManager';
 import BillManager from './components/BillManager';
 import GoalManager from './components/GoalManager';
 import ActionPlanView from './components/ActionPlanView';
@@ -62,6 +63,8 @@ function MainApp() {
                 return <CreditCardManager activeItemId={activeItemId} onItemExpanded={() => setActiveItemId(null)} />;
             case 'loans':
                 return <LoanManager activeItemId={activeItemId} onItemExpanded={() => setActiveItemId(null)} />;
+            case 'mortgages':
+                return <MortgageManager activeItemId={activeItemId} onItemExpanded={() => setActiveItemId(null)} />;
             case 'bills':
                 return <BillManager />;
             case 'goals':

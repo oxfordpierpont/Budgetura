@@ -14,7 +14,8 @@ import {
   Brain,
   Calendar,
   Building2,
-  User
+  User,
+  Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../src/hooks/useAuth';
@@ -126,6 +127,13 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                 onClick={() => handleNav('loans')}
                 icon={<Wallet size={20} />}
                 label="Loans"
+            />
+
+            <NavItem
+                active={currentView === 'mortgages'}
+                onClick={() => handleNav('mortgages')}
+                icon={<Home size={20} />}
+                label="Mortgages"
             />
 
             <NavItem
