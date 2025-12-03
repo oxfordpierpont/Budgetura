@@ -51,7 +51,7 @@ function MainApp() {
     const renderContent = () => {
         switch (currentView) {
             case 'dashboard':
-                return <DashboardView setMobileMenuOpen={setMobileMenuOpen} onAskAI={handleAskAI} />;
+                return <DashboardView setMobileMenuOpen={setMobileMenuOpen} onAskAI={handleAskAI} onNavigate={setCurrentView} />;
             case 'credit-cards':
                 return <CreditCardManager />;
             case 'loans':
@@ -71,7 +71,7 @@ function MainApp() {
             case 'settings':
                 return <SettingsView />;
             default:
-                return <DashboardView setMobileMenuOpen={setMobileMenuOpen} onAskAI={handleAskAI} />;
+                return <DashboardView setMobileMenuOpen={setMobileMenuOpen} onAskAI={handleAskAI} onNavigate={setCurrentView} />;
         }
     };
 

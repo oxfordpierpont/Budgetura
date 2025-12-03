@@ -1,18 +1,20 @@
 import React from 'react';
 import { useDebt } from '../context/DebtContext';
-import { Plus, Bell, Search, ArrowUpRight, GraduationCap, Car, Home, Building2, Wallet } from 'lucide-react';
+import { Plus, Bell, Search, ArrowUpRight, GraduationCap, Car, Home } from 'lucide-react';
 import DebtBreakdownChart from './DebtBreakdownChart';
 import CreditCardItem from './CreditCardItem';
 import { BillWidget, GoalWidget, SavingsPromo } from './Widgets';
 import AskAIButton from './AskAIButton';
+import BankingSummaryCard from './BankingSummaryCard';
 import { usePlaid } from '../src/hooks/usePlaid';
 
 interface Props {
     setMobileMenuOpen: (open: boolean) => void;
     onAskAI?: (prompt: string) => void;
+    onNavigate: (view: string) => void;
 }
 
-const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
+const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI, onNavigate }) => {
   const { cards, loans, bills, goals, createSnapshot, settings } = useDebt();
   const { accounts: plaidAccounts } = usePlaid();
 
@@ -31,21 +33,17 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
   const totalCardBalance = cards.reduce((s, c) => s + c.balance, 0);
   const utilization = totalLimit > 0 ? (totalCardBalance / totalLimit) * 100 : 0;
 
-  // Plaid bank accounts total
-  const totalCash = plaidAccounts.reduce((sum, account) => sum + (account.current_balance || 0), 0);
-  const netWorth = totalCash - totalDebt;
-
   return (
       <div className="flex-1 flex flex-col md:flex-row h-full">
-        
+
         {/* Left/Middle Column */}
         <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar scroll-smooth relative z-0">
-          
+
           {/* Header */}
           <header className="px-5 py-4 md:px-8 md:pt-8 md:pb-6 bg-white sticky top-0 z-20 border-b border-gray-100">
             <div className="flex justify-between items-start gap-4">
                 <div className="flex items-center gap-3">
-                    <button 
+                    <button
                         onClick={() => setMobileMenuOpen(true)}
                         className="p-2 -ml-2 rounded-lg text-gray-600 hover:bg-gray-100 lg:hidden focus:ring-2 focus:ring-blue-500"
                     >
@@ -68,18 +66,14 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
             </div>
 
             {/* Metrics Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mt-6">
-                <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
-                    <p className="text-xs text-emerald-600 font-bold uppercase">Total Cash</p>
-                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${totalCash.toLocaleString()}</p>
-                </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-6">
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
                     <p className="text-xs text-gray-500 font-bold uppercase">Total Debt</p>
                     <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${totalDebt.toLocaleString()}</p>
                 </div>
-                <div className={`p-4 rounded-2xl border ${netWorth >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'}`}>
-                    <p className={`text-xs font-bold uppercase ${netWorth >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Net Worth</p>
-                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${netWorth.toLocaleString()}</p>
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p className="text-xs text-gray-500 font-bold uppercase">Monthly Output</p>
+                    <p className="text-lg md:text-xl font-bold text-gray-900 mt-1">${(monthlyPayments + monthlyBillTotal).toLocaleString()}</p>
                 </div>
                 <div className={`p-4 rounded-2xl border ${dti < 36 ? 'bg-emerald-50 border-emerald-100' : dti < 43 ? 'bg-yellow-50 border-yellow-100' : 'bg-red-50 border-red-100'}`}>
                     <p className={`text-xs font-bold uppercase ${dti < 36 ? 'text-emerald-600' : dti < 43 ? 'text-yellow-600' : 'text-red-600'}`}>DTI Ratio</p>
@@ -93,37 +87,8 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
           </header>
 
           <div className="p-4 md:p-8 space-y-6 md:space-y-8 pb-20 md:pb-8">
-            {/* Bank Accounts Section */}
-            {plaidAccounts.length > 0 && (
-              <section className="bg-white p-4 md:p-6 rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-gray-100">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-gray-900 text-lg">Bank Accounts</h3>
-                  <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">{plaidAccounts.length} Connected</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {plaidAccounts.map(account => (
-                    <div key={account.id} className="bg-gradient-to-br from-emerald-50 to-blue-50 p-5 rounded-2xl border border-emerald-100 hover:shadow-md transition-all">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                          <Wallet size={18} />
-                        </div>
-                        <span className="text-xs text-emerald-600 bg-white px-2 py-1 rounded-lg font-bold">
-                          {account.subtype || account.type}
-                        </span>
-                      </div>
-                      <h4 className="font-bold text-gray-900 text-sm mb-1">{account.name}</h4>
-                      {account.mask && (
-                        <p className="text-xs text-gray-500 mb-3">••{account.mask}</p>
-                      )}
-                      <p className="text-2xl font-bold text-gray-900">${account.current_balance?.toLocaleString() || '0'}</p>
-                      {account.available_balance !== null && account.available_balance !== account.current_balance && (
-                        <p className="text-xs text-gray-500 mt-1">Available: ${account.available_balance?.toLocaleString()}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+            {/* Banking Summary Card */}
+            <BankingSummaryCard accounts={plaidAccounts} onNavigate={onNavigate} />
 
             {/* Debt Chart Section */}
             <section className="bg-white p-4 md:p-6 rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-gray-100 relative group/section">
@@ -138,7 +103,7 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
 
             {/* Two Column Grid for Lists */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
-                
+
                 {/* Credit Cards Column */}
                 <section>
                     <div className="flex justify-between items-center mb-5">
@@ -147,9 +112,9 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
                     </div>
                     <div>
                         {cards.map(card => (
-                            <CreditCardItem 
-                                key={card.id} 
-                                card={card} 
+                            <CreditCardItem
+                                key={card.id}
+                                card={card}
                                 onAskAI={() => handleAsk(`Help me with a plan to pay off my ${card.name}. It has a balance of $${card.balance} and ${card.apr}% APR.`)}
                             />
                         ))}
@@ -180,7 +145,7 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
                                             <span className="text-xs text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded mt-1 inline-block">Rate: {loan.rate}%</span>
                                         </div>
                                     </div>
-                                    <span className="font-bold text-gray-900 text-xl sm:text-base pr-8 sm:pr-0">-${loan.currentBalance.toLocaleString()}</span>
+                                    <span className="font-bold text-gray-900 text-xl sm:text-base pr-8 sm:pr-0">-${loan.currentBalance.toLocaleString()}</span >
                                 </div>
                                 <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-50">
                                     <div className="text-gray-500">
@@ -200,7 +165,7 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI }) => {
 
         {/* Right Column (Sidebar details) */}
         <div className="w-full md:w-80 lg:w-[380px] bg-white p-6 md:p-8 flex flex-col border-l border-gray-100 lg:overflow-y-auto z-10 custom-scrollbar border-t md:border-t-0 shrink-0">
-           
+
            {/* Goals Section */}
            <div className="mb-10">
               <div className="flex justify-between items-end mb-6">
