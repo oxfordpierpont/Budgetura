@@ -1,5 +1,5 @@
 import { supabase } from './client';
-import { CreditCard, Loan, Bill, Goal, PlaidAccount, PlaidItem } from '../../types';
+import { CreditCard, Loan, Mortgage, Bill, Goal, PlaidAccount, PlaidItem } from '../../types';
 
 // ============================================================================
 // CREDIT CARDS
@@ -159,6 +159,103 @@ export const updateLoan = async (id: string, updates: Partial<Loan>) => {
 export const deleteLoan = async (id: string) => {
   const { error } = await supabase
     .from('loans')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+};
+
+// ============================================================================
+// MORTGAGES
+// ============================================================================
+
+export const addMortgage = async (userId: string, mortgage: Mortgage) => {
+  const { data, error } = await supabase
+    .from('mortgages')
+    .insert({
+      user_id: userId,
+      property_address: mortgage.propertyAddress,
+      property_city: mortgage.propertyCity,
+      property_state: mortgage.propertyState,
+      property_zip: mortgage.propertyZip,
+      property_type: mortgage.propertyType?.toLowerCase().replace(' ', '_'),
+      property_value: mortgage.propertyValue,
+      lender: mortgage.lender,
+      account_number: mortgage.accountNumber,
+      loan_type: mortgage.loanType?.toLowerCase(),
+      original_principal: mortgage.originalPrincipal,
+      current_balance: mortgage.currentBalance,
+      interest_rate: mortgage.interestRate,
+      interest_type: mortgage.interestType?.toLowerCase(),
+      term_months: mortgage.termMonths,
+      monthly_payment: mortgage.monthlyPayment,
+      extra_payment: mortgage.extraPayment || 0,
+      monthly_property_tax: mortgage.monthlyPropertyTax || 0,
+      monthly_insurance: mortgage.monthlyInsurance || 0,
+      monthly_hoa: mortgage.monthlyHOA || 0,
+      pmi: mortgage.pmi || 0,
+      pmi_removal_ltv: mortgage.pmiRemovalLTV || 80,
+      start_date: mortgage.startDate,
+      maturity_date: mortgage.maturityDate,
+      due_date: mortgage.dueDate,
+      status: mortgage.status?.toLowerCase().replace(' ', '_') || 'active',
+      auto_pay: mortgage.autoPay || false,
+      notes: mortgage.notes,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const updateMortgage = async (id: string, updates: Partial<Mortgage>) => {
+  const dbUpdates: any = {};
+
+  if (updates.propertyAddress) dbUpdates.property_address = updates.propertyAddress;
+  if (updates.propertyCity) dbUpdates.property_city = updates.propertyCity;
+  if (updates.propertyState) dbUpdates.property_state = updates.propertyState;
+  if (updates.propertyZip) dbUpdates.property_zip = updates.propertyZip;
+  if (updates.propertyType) dbUpdates.property_type = updates.propertyType.toLowerCase().replace(' ', '_');
+  if (updates.propertyValue !== undefined) dbUpdates.property_value = updates.propertyValue;
+  if (updates.lender) dbUpdates.lender = updates.lender;
+  if (updates.accountNumber) dbUpdates.account_number = updates.accountNumber;
+  if (updates.loanType) dbUpdates.loan_type = updates.loanType.toLowerCase();
+  if (updates.originalPrincipal !== undefined) dbUpdates.original_principal = updates.originalPrincipal;
+  if (updates.currentBalance !== undefined) dbUpdates.current_balance = updates.currentBalance;
+  if (updates.interestRate !== undefined) dbUpdates.interest_rate = updates.interestRate;
+  if (updates.interestType) dbUpdates.interest_type = updates.interestType.toLowerCase();
+  if (updates.termMonths !== undefined) dbUpdates.term_months = updates.termMonths;
+  if (updates.monthlyPayment !== undefined) dbUpdates.monthly_payment = updates.monthlyPayment;
+  if (updates.extraPayment !== undefined) dbUpdates.extra_payment = updates.extraPayment;
+  if (updates.monthlyPropertyTax !== undefined) dbUpdates.monthly_property_tax = updates.monthlyPropertyTax;
+  if (updates.monthlyInsurance !== undefined) dbUpdates.monthly_insurance = updates.monthlyInsurance;
+  if (updates.monthlyHOA !== undefined) dbUpdates.monthly_hoa = updates.monthlyHOA;
+  if (updates.pmi !== undefined) dbUpdates.pmi = updates.pmi;
+  if (updates.pmiRemovalLTV !== undefined) dbUpdates.pmi_removal_ltv = updates.pmiRemovalLTV;
+  if (updates.startDate) dbUpdates.start_date = updates.startDate;
+  if (updates.maturityDate) dbUpdates.maturity_date = updates.maturityDate;
+  if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
+  if (updates.status) dbUpdates.status = updates.status.toLowerCase().replace(' ', '_');
+  if (updates.autoPay !== undefined) dbUpdates.auto_pay = updates.autoPay;
+  if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+
+  dbUpdates.updated_at = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('mortgages')
+    .update(dbUpdates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteMortgage = async (id: string) => {
+  const { error } = await supabase
+    .from('mortgages')
     .delete()
     .eq('id', id);
 

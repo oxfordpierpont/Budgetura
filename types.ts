@@ -148,6 +148,74 @@ export interface Loan {
   collateral?: string;
 }
 
+// Mortgage Types
+export type MortgageStatus = 'Active' | 'Paid Off' | 'Foreclosed' | 'In Forbearance';
+export type MortgageType = 'Conventional' | 'FHA' | 'VA' | 'USDA' | 'HELOC' | 'Reverse';
+export type PropertyType = 'Single Family' | 'Condo' | 'Townhouse' | 'Multi Family' | 'Mobile Home';
+export type InterestType = 'Fixed' | 'Variable' | 'Adjustable';
+
+export interface MortgageHistory {
+  date: string;
+  balance: number;
+  propertyValue: number;
+  equity: number;
+  rate: number;
+}
+
+export interface Mortgage {
+  id: string;
+
+  // Property Information
+  propertyAddress?: string;
+  propertyCity?: string;
+  propertyState?: string;
+  propertyZip?: string;
+  propertyType?: PropertyType;
+  propertyValue: number;
+
+  // Loan Details
+  lender?: string;
+  accountNumber?: string;
+  loanType?: MortgageType;
+  originalPrincipal: number;
+  currentBalance: number;
+  interestRate: number;
+  interestType?: InterestType;
+  termMonths: number;
+  monthlyPayment: number;
+  extraPayment?: number;
+
+  // Calculated Fields (computed on frontend)
+  equity?: number;
+  equityPercentage?: number;
+  loanToValue?: number;
+
+  // Additional Monthly Costs
+  monthlyPropertyTax?: number;
+  monthlyInsurance?: number;
+  monthlyHOA?: number;
+  pmi?: number;
+  pmiRemovalLTV?: number;
+  totalMonthlyHousingCost?: number;
+
+  // Dates
+  startDate?: string;
+  maturityDate?: string;
+  dueDate?: number; // Day of month (1-31)
+
+  // Status & Settings
+  status?: MortgageStatus;
+  autoPay?: boolean;
+  notes?: string;
+
+  // History
+  history?: MortgageHistory[];
+
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface BillPaymentHistory {
   id: string;
   date: string;

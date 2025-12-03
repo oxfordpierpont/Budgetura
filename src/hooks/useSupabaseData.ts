@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase/client';
-import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings } from '../types';
+import { CreditCard, Loan, Mortgage, Bill, Goal, Snapshot, UserSettings } from '../types';
 import { useAuth } from './useAuth';
 
 export interface SupabaseData {
   cards: CreditCard[];
   loans: Loan[];
+  mortgages: Mortgage[];
   bills: Bill[];
   goals: Goal[];
   snapshots: Snapshot[];
@@ -19,6 +20,7 @@ export const useSupabaseData = () => {
   const [data, setData] = useState<SupabaseData>({
     cards: [],
     loans: [],
+    mortgages: [],
     bills: [],
     goals: [],
     snapshots: [],
@@ -63,6 +65,15 @@ export const useSupabaseData = () => {
         .order('created_at', { ascending: false });
 
       if (loansError) throw loansError;
+
+      // Fetch mortgages
+      const { data: mortgages, error: mortgagesError } = await supabase
+        .from('mortgages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (mortgagesError) throw mortgagesError;
 
       // Fetch bills
       const { data: bills, error: billsError } = await supabase
@@ -151,6 +162,51 @@ export const useSupabaseData = () => {
         graduationDate: loan.graduation_date,
       }));
 
+      const mappedMortgages: Mortgage[] = (mortgages || []).map(mortgage => {
+        const currentBalance = parseFloat(mortgage.current_balance) || 0;
+        const propertyValue = parseFloat(mortgage.property_value) || 0;
+        const equity = Math.max(0, propertyValue - currentBalance);
+        const equityPercentage = propertyValue > 0 ? (equity / propertyValue) * 100 : 0;
+        const loanToValue = propertyValue > 0 ? (currentBalance / propertyValue) * 100 : 0;
+
+        return {
+          id: mortgage.id,
+          propertyAddress: mortgage.property_address,
+          propertyCity: mortgage.property_city,
+          propertyState: mortgage.property_state,
+          propertyZip: mortgage.property_zip,
+          propertyType: capitalizeWords(mortgage.property_type?.replace('_', ' ') || ''),
+          propertyValue,
+          lender: mortgage.lender,
+          accountNumber: mortgage.account_number,
+          loanType: capitalizeFirstLetter(mortgage.loan_type || ''),
+          originalPrincipal: parseFloat(mortgage.original_principal) || 0,
+          currentBalance,
+          interestRate: parseFloat(mortgage.interest_rate) || 0,
+          interestType: capitalizeFirstLetter(mortgage.interest_type || 'Fixed'),
+          termMonths: mortgage.term_months || 0,
+          monthlyPayment: parseFloat(mortgage.monthly_payment) || 0,
+          extraPayment: mortgage.extra_payment ? parseFloat(mortgage.extra_payment) : 0,
+          equity,
+          equityPercentage,
+          loanToValue,
+          monthlyPropertyTax: mortgage.monthly_property_tax ? parseFloat(mortgage.monthly_property_tax) : 0,
+          monthlyInsurance: mortgage.monthly_insurance ? parseFloat(mortgage.monthly_insurance) : 0,
+          monthlyHOA: mortgage.monthly_hoa ? parseFloat(mortgage.monthly_hoa) : 0,
+          pmi: mortgage.pmi ? parseFloat(mortgage.pmi) : 0,
+          pmiRemovalLTV: mortgage.pmi_removal_ltv || 80,
+          totalMonthlyHousingCost: mortgage.total_monthly_housing_cost ? parseFloat(mortgage.total_monthly_housing_cost) : 0,
+          startDate: mortgage.start_date,
+          maturityDate: mortgage.maturity_date,
+          dueDate: mortgage.due_date,
+          status: mortgage.status === 'active' ? 'Active' : mortgage.status === 'paid_off' ? 'Paid Off' : capitalizeWords(mortgage.status?.replace('_', ' ') || ''),
+          autoPay: mortgage.auto_pay,
+          notes: mortgage.notes,
+          createdAt: mortgage.created_at,
+          updatedAt: mortgage.updated_at,
+        };
+      });
+
       const mappedBills: Bill[] = (bills || []).map(bill => ({
         id: bill.id,
         name: bill.bill_name,
@@ -189,6 +245,7 @@ export const useSupabaseData = () => {
       setData({
         cards: mappedCards,
         loans: mappedLoans,
+        mortgages: mappedMortgages,
         bills: mappedBills,
         goals: mappedGoals,
         snapshots: mappedSnapshots,

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings } from '../types';
+import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage } from '../types';
 import { useSupabaseData } from '../src/hooks/useSupabaseData';
 import { useAuth } from '../src/hooks/useAuth';
 import * as ops from '../src/lib/supabase/operations';
@@ -13,6 +13,7 @@ interface AIChatState {
 interface DebtContextType {
   cards: CreditCard[];
   loans: Loan[];
+  mortgages: Mortgage[];
   bills: Bill[];
   goals: Goal[];
   snapshots: Snapshot[];
@@ -27,6 +28,9 @@ interface DebtContextType {
   addLoan: (loan: Loan) => Promise<void>;
   updateLoan: (id: string, loan: Partial<Loan>) => Promise<void>;
   deleteLoan: (id: string) => Promise<void>;
+  addMortgage: (mortgage: Mortgage) => Promise<void>;
+  updateMortgage: (id: string, mortgage: Partial<Mortgage>) => Promise<void>;
+  deleteMortgage: (id: string) => Promise<void>;
   addBill: (bill: Bill) => Promise<void>;
   updateBill: (id: string, bill: Partial<Bill>) => Promise<void>;
   deleteBill: (id: string) => Promise<void>;
@@ -41,7 +45,7 @@ const DebtContext = createContext<DebtContextType | undefined>(undefined);
 
 export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const { cards, loans, bills, goals, snapshots, settings, loading, refetch } = useSupabaseData();
+  const { cards, loans, mortgages, bills, goals, snapshots, settings, loading, refetch } = useSupabaseData();
   const [aiChatState, setAIChatState] = useState<AIChatState>({ isOpen: false });
 
   // Credit Cards
@@ -75,6 +79,23 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteLoan = async (id: string) => {
     await ops.deleteLoan(id);
+    await refetch();
+  };
+
+  // Mortgages
+  const addMortgage = async (mortgage: Mortgage) => {
+    if (!user) return;
+    await ops.addMortgage(user.id, mortgage);
+    await refetch();
+  };
+
+  const updateMortgage = async (id: string, updates: Partial<Mortgage>) => {
+    await ops.updateMortgage(id, updates);
+    await refetch();
+  };
+
+  const deleteMortgage = async (id: string) => {
+    await ops.deleteMortgage(id);
     await refetch();
   };
 
@@ -144,6 +165,7 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <DebtContext.Provider value={{
       cards,
       loans,
+      mortgages,
       bills,
       goals,
       snapshots,
@@ -158,6 +180,9 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addLoan,
       updateLoan,
       deleteLoan,
+      addMortgage,
+      updateMortgage,
+      deleteMortgage,
       addBill,
       updateBill,
       deleteBill,
