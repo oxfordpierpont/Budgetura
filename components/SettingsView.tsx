@@ -51,9 +51,9 @@ const SettingsView = () => {
     input.onchange = (e: any) => {
       const file = e.target.files?.[0];
       if (file) {
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-          toast.error('Image must be less than 2MB');
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error('Image must be less than 10MB');
           return;
         }
 
