@@ -1,20 +1,35 @@
 import React, { useState } from 'react';
-import { Save, Bot, Database, Trash2, Layout, Shield, Wand2, User, Mail, Lock, Phone, CreditCard, Sliders, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Save, Bot, Database, Trash2, Layout, Shield, Wand2, User, Mail, Lock, Phone, CreditCard, Sliders, ChevronDown, AlertTriangle, X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../src/hooks/useAuth';
 import { useDebt } from '../context/DebtContext';
 import { generateDummyDataForUser } from '../src/lib/generateDummyData';
 import { clearAllUserData } from '../src/lib/supabase/operations';
+import { supabase } from '../src/lib/supabase/client';
+import toast from 'react-hot-toast';
 
 const SettingsView = () => {
-  const { user } = useAuth();
+  const { user, updatePassword } = useAuth();
   const { refetch } = useDebt();
   const [generating, setGenerating] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+
+  // Password change modal
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // Email change modal
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
 
   // Load user data when component mounts
   React.useEffect(() => {
@@ -41,6 +56,111 @@ const SettingsView = () => {
       }
     };
     input.click();
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) {
+      toast.error('You must be logged in to save profile');
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Update user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: fullName,
+          phone: phone,
+          avatar_url: avatarUrl,
+        }
+      });
+
+      if (error) throw error;
+
+      // Also update user_profiles table
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          full_name: fullName,
+        }, { onConflict: 'id' });
+
+      if (profileError) console.error('Profile update error:', profileError);
+
+      toast.success('Profile updated successfully!');
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      // Verify current password by attempting to sign in
+      if (user?.email) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: currentPassword,
+        });
+
+        if (signInError) {
+          toast.error('Current password is incorrect');
+          return;
+        }
+      }
+
+      // Update password
+      await updatePassword(newPassword);
+
+      toast.success('Password updated successfully!');
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast.error(error.message || 'Failed to update password');
+    }
+  };
+
+  const handleChangeEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newEmail || newEmail === email) {
+      toast.error('Please enter a new email address');
+      return;
+    }
+
+    try {
+      // Update email - Supabase will send confirmation emails automatically
+      const { error } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (error) throw error;
+
+      toast.success('Confirmation emails sent! Please check both your old and new email addresses.');
+      setShowEmailModal(false);
+      setNewEmail('');
+    } catch (error: any) {
+      console.error('Error updating email:', error);
+      toast.error(error.message || 'Failed to update email');
+    }
   };
 
   const handleGenerateDummyData = async () => {
@@ -101,7 +221,7 @@ const SettingsView = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full lg:overflow-y-auto custom-scrollbar bg-[#F3F4F6] p-4 md:p-8 space-y-8">
-      
+
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -109,7 +229,7 @@ const SettingsView = () => {
       </div>
 
       <div className="space-y-8 pb-10">
-        
+
         {/* Profile & Security Section */}
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex items-center gap-4">
@@ -161,8 +281,14 @@ const SettingsView = () => {
                                   type="email"
                                   value={email}
                                   readOnly
-                                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm cursor-not-allowed outline-none"
+                                  className="w-full pl-10 pr-20 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm cursor-not-allowed outline-none"
                                 />
+                                <button
+                                  onClick={() => setShowEmailModal(true)}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-600 hover:text-blue-700 px-2 py-1"
+                                >
+                                  Change
+                                </button>
                             </div>
                         </div>
                         <div>
@@ -185,11 +311,17 @@ const SettingsView = () => {
                                 <input
                                   type="password"
                                   placeholder="••••••••"
-                                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-400 text-sm cursor-not-allowed outline-none"
+                                  value="••••••••"
+                                  className="w-full pl-10 pr-20 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-400 text-sm cursor-not-allowed outline-none"
                                   readOnly
                                 />
+                                <button
+                                  onClick={() => setShowPasswordModal(true)}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-blue-600 hover:text-blue-700 px-2 py-1"
+                                >
+                                  Change
+                                </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Password changes coming soon</p>
                         </div>
                     </div>
                 </div>
@@ -199,8 +331,12 @@ const SettingsView = () => {
                         <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
                         Sign in with Google
                      </button>
-                     <button className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95">
-                        Save Profile
+                     <button
+                       onClick={handleSaveProfile}
+                       disabled={saving}
+                       className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                        {saving ? 'Saving...' : 'Save Profile'}
                      </button>
                 </div>
             </div>
@@ -295,7 +431,7 @@ const SettingsView = () => {
                     <input type="password" placeholder="sk-..." className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
                   </div>
                </div>
-               
+
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model Selection</label>
                   <div className="relative">
@@ -330,7 +466,7 @@ const SettingsView = () => {
                   <input type="number" defaultValue="2000" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
                </div>
             </div>
-            
+
             <div className="bg-purple-50 p-4 rounded-xl flex items-start gap-3 border border-purple-100">
                 <Wand2 size={18} className="text-purple-600 mt-0.5 shrink-0" />
                 <p className="text-xs text-purple-900 leading-relaxed">
@@ -391,6 +527,156 @@ const SettingsView = () => {
         </section>
 
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <form onSubmit={handleChangePassword} className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-black text-2xl text-gray-900">Change Password</h3>
+                <p className="text-gray-500 text-sm mt-1">Enter your current and new password</p>
+              </div>
+              <button type="button" onClick={() => setShowPasswordModal(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-500 transition-colors">
+                <X size={20}/>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Current Password</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New Password</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Confirm New Password</label>
+                <div className="relative">
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4 justify-end mt-8">
+              <button type="button" onClick={() => setShowPasswordModal(false)} className="px-6 py-3 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition-colors">
+                Cancel
+              </button>
+              <button type="submit" className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-xl shadow-blue-500/30 transition-all active:scale-95">
+                Update Password
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Email Change Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <form onSubmit={handleChangeEmail} className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-blue-500"></div>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="font-black text-2xl text-gray-900">Change Email</h3>
+                <p className="text-gray-500 text-sm mt-1">You'll receive confirmation emails</p>
+              </div>
+              <button type="button" onClick={() => setShowEmailModal(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-500 transition-colors">
+                <X size={20}/>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Current Email</label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    readOnly
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 text-sm cursor-not-allowed outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New Email</label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    required
+                    placeholder="Enter new email address"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                <p className="text-xs text-blue-900">
+                  <strong>Note:</strong> You'll receive confirmation emails at both your old and new email addresses. You must verify both to complete the change.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4 justify-end mt-8">
+              <button type="button" onClick={() => setShowEmailModal(false)} className="px-6 py-3 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition-colors">
+                Cancel
+              </button>
+              <button type="submit" className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-xl shadow-emerald-500/30 transition-all active:scale-95">
+                Change Email
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
     </div>
   );
 };
