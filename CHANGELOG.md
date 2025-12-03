@@ -5,6 +5,75 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2025-12-03
+
+### Added
+- **Mortgage Dummy Data Integration** - One-click generator now creates mortgage examples
+  - Added `MORTGAGES` constant with 3 realistic mortgage scenarios:
+    - Well-Managed: Bellevue family home (50% LTV, 3.25% rate, making extra payments)
+    - Average: Redmond townhouse (74% LTV, 4.5% FHA rate, has PMI)
+    - Near-Foreclosure: Tacoma condo (95% LTV, 6.75% variable rate, in forbearance)
+  - Mortgages now generated alongside credit cards, loans, bills, and goals
+
+### Fixed
+- **Data Cleanup Bug** - `clearAllUserData` now properly deletes mortgages
+  - Previously, mortgages were left behind when clearing all data
+  - Updated confirmation dialog to mention mortgages in deletion list
+  - Ensures complete data lifecycle management
+
+### Changed
+- Updated `generateDummyData.ts` to include mortgage insertion loop
+- Added `Mortgage` type import to `constants.ts`
+- Settings confirmation dialog now lists mortgages in data to be deleted
+
+---
+
+## [2.3.0] - 2025-12-02
+
+### Added
+- **Complete Mortgage Manager** - Full CRUD functionality for mortgages
+  - Comprehensive mortgage tracking with property details
+  - Advanced calculations: equity, LTV, total housing costs
+  - Support for conventional, FHA, VA, USDA loans
+  - PMI tracking with automatic removal threshold
+  - Forbearance and foreclosure status tracking
+  - Database schema: `mortgages` table with RLS policies
+  - Migration file: `mortgages_table_migration.sql`
+
+- **Enhanced Progress Tracking View**
+  - Revamped debt tracking with category breakdowns
+  - AI-powered financial insights
+  - Improved debt visualization
+  - Auto-expansion navigation from Progress Tracking modal
+
+- **Redesigned Goal Manager**
+  - Enhanced visualization for savings goals
+  - Improved debt payoff tracking
+  - Better progress indicators
+
+- **Settings Page Enhancements**
+  - Profile save functionality with validation
+  - Password change with current password verification
+  - Email change with confirmation flow
+  - Avatar upload improvements:
+    - Increased limit from 2MB to 10MB
+    - Now uses Supabase Storage instead of base64
+    - Proper image preview
+
+### Fixed
+- Progress Tracking modal Details button navigation
+- localStorage quota exceeded errors during login
+- BankingSummaryCard background color for improved visibility
+- Sidebar navigation and organization
+
+### Changed
+- Polished sidebar with consistent dividers and user avatar
+- Updated color scheme (dark blue theme: #081016)
+- Improved MainApp component structure and readability
+- Removed deprecated _NEW design template files
+
+---
+
 ## [2.2.0] - 2025-12-02
 
 ### Added
@@ -153,12 +222,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **2.4.0** - Mortgage dummy data integration
+- **2.3.0** - Complete Mortgage Manager with CRUD functionality
+- **2.2.0** - Plaid bank account integration
+- **2.1.3** - Dummy data generation fixes
+- **2.1.2** - Clear All Data bug fix
+- **2.1.1** - Clear All Data functionality
 - **2.1.0** - Dokploy deployment fixes and documentation
 - **2.0.0** - React migration with Supabase
 - **1.0.0** - Initial WordPress plugin release
 
 ---
 
+[2.4.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.3.0...v2.4.0
+[2.3.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.2.0...v2.3.0
+[2.2.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.1.3...v2.2.0
+[2.1.3]: https://github.com/oxfordpierpont/Budgetura/compare/v2.1.2...v2.1.3
+[2.1.2]: https://github.com/oxfordpierpont/Budgetura/compare/v2.1.1...v2.1.2
+[2.1.1]: https://github.com/oxfordpierpont/Budgetura/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/oxfordpierpont/Budgetura/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/oxfordpierpont/Budgetura/releases/tag/v1.0.0
