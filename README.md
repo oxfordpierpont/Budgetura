@@ -1,4 +1,4 @@
-![screenshot](public/assets/images/Budgetura-Dashboard.png)
+![screenshot](public/assets/images/Budgetura-Bill-Manager.png)
 
 # Budgetura - React Debt Management Application
 
