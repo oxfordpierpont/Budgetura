@@ -103,13 +103,18 @@ const ProgressView: React.FC<Props> = ({ onNavigate }) => {
   const handleNavigateToItem = (item: any) => {
       if (!onNavigate) return;
 
+      console.log('handleNavigateToItem called:', item);
+      console.log('Item ID:', item.id);
+
       // Close modal first
       setSelectedCategory(null);
 
       // Determine destination based on type/props and pass item ID
       if ('balance' in item) { // It's a card
+          console.log('Navigating to credit-cards with ID:', item.id);
           onNavigate('credit-cards', item.id);
       } else { // It's a loan
+          console.log('Navigating to loans with ID:', item.id);
           onNavigate('loans', item.id);
       }
   };

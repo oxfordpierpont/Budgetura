@@ -50,6 +50,7 @@ function MainApp() {
     };
 
     const handleNavigateWithItem = (view: string, itemId?: string) => {
+        console.log('handleNavigateWithItem:', { view, itemId });
         setCurrentView(view);
         setActiveItemId(itemId || null);
     };

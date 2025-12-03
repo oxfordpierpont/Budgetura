@@ -395,13 +395,17 @@ const CardRow: React.FC<CardRowProps> = ({ card, onDelete, onEdit, onViewHistory
 
   // Auto-expand when this card is the active item
   useEffect(() => {
+    console.log('CardRow useEffect:', { activeItemId, cardId: card.id, match: activeItemId === card.id });
     if (activeItemId === card.id) {
+      console.log('Expanding card:', card.name, card.id);
       setExpanded(true);
       // Notify parent that expansion has occurred
       onItemExpanded?.();
       // Scroll into view smoothly
       setTimeout(() => {
-        document.getElementById(`card-${card.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const element = document.getElementById(`card-${card.id}`);
+        console.log('Scrolling to element:', element);
+        element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
     }
   }, [activeItemId, card.id, onItemExpanded]);
