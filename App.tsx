@@ -77,7 +77,7 @@ function MainApp() {
 
     return (
         <DebtProvider>
-            <div className="flex flex-col lg:flex-row w-full min-h-screen lg:h-[calc(100vh-32px)] bg-[#cc0000] font-sans isolate relative">
+            <div className="flex flex-col lg:flex-row w-full min-h-screen lg:h-[calc(100vh-32px)] bg-[#081016] font-sans isolate relative">
                 <Sidebar
                     mobileOpen={mobileMenuOpen}
                     setMobileOpen={setMobileMenuOpen}
