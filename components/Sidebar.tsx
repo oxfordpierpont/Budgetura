@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   Brain,
   Calendar,
-  Building2
+  Building2,
+  User
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../src/hooks/useAuth';
@@ -26,7 +27,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate, currentView }) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
   const handleNav = (view: string) => {
@@ -109,10 +110,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
             />
 
             {/* Divider */}
-            <div className="pt-4 pb-2">
-                <div className="px-3 mb-2">
-                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Debt Management</p>
-                </div>
+            <div className="py-3">
+                <div className="border-t border-gray-800"></div>
             </div>
 
             <NavItem
@@ -192,12 +191,22 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
         {/* Settings & Logout */}
         <div className="pt-6 border-t border-gray-800">
            {/* Internal Settings Link */}
-           <button 
+           <button
               onClick={() => handleNav('settings')}
               className={`w-full flex items-center gap-3 p-3 cursor-pointer transition-colors duration-200 mb-2 rounded-xl text-left
               ${currentView === 'settings' ? 'text-white bg-white/5' : 'text-gray-400 hover:text-white'}`}
            >
-              <Settings size={20} />
+              {user?.user_metadata?.avatar_url ? (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="Profile"
+                  className="w-6 h-6 rounded-full object-cover border border-gray-700"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center">
+                  <User size={14} className="text-gray-400" />
+                </div>
+              )}
               <span className="font-medium">Settings</span>
            </button>
            
