@@ -1,4 +1,4 @@
-import { CREDIT_CARDS, LOANS, BILLS, GOALS } from '../../constants';
+import { CREDIT_CARDS, LOANS, BILLS, GOALS, getMortgages } from '../../constants';
 import * as ops from './supabase/operations';
 
 export const generateDummyDataForUser = async (userId: string) => {
@@ -58,6 +58,40 @@ export const generateDummyDataForUser = async (userId: string) => {
         loanProgramType: loan.loanProgramType,
         schoolName: loan.schoolName,
         graduationDate: loan.graduationDate,
+      } as any);
+    }
+
+    // Add all dummy mortgages - only pass fields that exist in the database
+    const mortgages = getMortgages();
+    for (const mortgage of mortgages) {
+      await ops.addMortgage(userId, {
+        propertyAddress: mortgage.propertyAddress,
+        propertyCity: mortgage.propertyCity,
+        propertyState: mortgage.propertyState,
+        propertyZip: mortgage.propertyZip,
+        propertyType: mortgage.propertyType,
+        propertyValue: mortgage.propertyValue,
+        lender: mortgage.lender,
+        accountNumber: mortgage.accountNumber,
+        loanType: mortgage.loanType,
+        originalPrincipal: mortgage.originalPrincipal,
+        currentBalance: mortgage.currentBalance,
+        interestRate: mortgage.interestRate,
+        interestType: mortgage.interestType,
+        termMonths: mortgage.termMonths,
+        monthlyPayment: mortgage.monthlyPayment,
+        extraPayment: mortgage.extraPayment || 0,
+        monthlyPropertyTax: mortgage.monthlyPropertyTax || 0,
+        monthlyInsurance: mortgage.monthlyInsurance || 0,
+        monthlyHOA: mortgage.monthlyHOA || 0,
+        pmi: mortgage.pmi || 0,
+        pmiRemovalLTV: mortgage.pmiRemovalLTV || 80,
+        startDate: mortgage.startDate,
+        maturityDate: mortgage.maturityDate,
+        dueDate: mortgage.dueDate,
+        status: mortgage.status,
+        autoPay: mortgage.autoPay,
+        notes: mortgage.notes,
       } as any);
     }
 
