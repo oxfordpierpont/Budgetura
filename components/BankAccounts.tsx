@@ -6,11 +6,11 @@ import { Building2, CreditCard, Trash2, RefreshCw, AlertCircle, Plus, Wallet, Sh
  * For production, uncomment your original imports and remove the mock data/hooks.
  */
 
-// --- Original Imports (Uncomment for Production) ---
-// import { usePlaid } from '../src/hooks/usePlaid';
-// import { PlaidLink } from './PlaidLink';
-// import { disconnectPlaidItem } from '../src/lib/supabase/operations';
-// import toast from 'react-hot-toast';
+--- Original Imports (Uncomment for Production) ---
+import { usePlaid } from '../src/hooks/usePlaid';
+import { PlaidLink } from './PlaidLink';
+import { disconnectPlaidItem } from '../src/lib/supabase/operations';
+import toast from 'react-hot-toast';
 
 // --- MOCK DEFINITIONS FOR PREVIEW (Remove in Production) ---
 const toast = {
