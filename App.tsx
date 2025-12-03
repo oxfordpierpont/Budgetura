@@ -26,6 +26,7 @@ import ActionPlanView from './components/ActionPlanView';
 import ProgressView from './components/ProgressView';
 import FloatingChatPanel from './components/FloatingChatPanel';
 import { BankAccounts } from './components/BankAccounts';
+import ReportsView from './components/ReportsView';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -75,6 +76,8 @@ function MainApp() {
                 return <ActionPlanView />;
             case 'progress':
                 return <ProgressView onNavigate={handleNavigateWithItem} />;
+            case 'reports':
+                return <ReportsView />;
             case 'ai-chat':
                 return <AIChatView initialPrompt={initialAiPrompt} onClose={() => setCurrentView('dashboard')} />;
             case 'settings':

@@ -15,7 +15,8 @@ import {
   Calendar,
   Building2,
   User,
-  Home
+  Home,
+  BarChart2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../src/hooks/useAuth';
@@ -160,6 +161,13 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
                 onClick={() => handleNav('progress')}
                 icon={<TrendingUp size={20} />}
                 label="Progress Tracking"
+            />
+
+            <NavItem
+                active={currentView === 'reports'}
+                onClick={() => handleNav('reports')}
+                icon={<BarChart2 size={20} />}
+                label="Reports & Analytics"
             />
 
             {/* AI Chat Link */}

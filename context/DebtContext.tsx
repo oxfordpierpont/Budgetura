@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage } from '../types';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage, PlaidAccount } from '../types';
 import { useSupabaseData } from '../src/hooks/useSupabaseData';
 import { useAuth } from '../src/hooks/useAuth';
 import * as ops from '../src/lib/supabase/operations';
@@ -18,6 +18,7 @@ interface DebtContextType {
   goals: Goal[];
   snapshots: Snapshot[];
   settings: UserSettings;
+  accounts: PlaidAccount[];
   aiChatState: AIChatState;
   loading: boolean;
   refetch: () => Promise<void>;
@@ -47,6 +48,22 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { user } = useAuth();
   const { cards, loans, mortgages, bills, goals, snapshots, settings, loading, refetch } = useSupabaseData();
   const [aiChatState, setAIChatState] = useState<AIChatState>({ isOpen: false });
+  const [accounts, setAccounts] = useState<PlaidAccount[]>([]);
+
+  // Fetch Plaid accounts
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      if (!user) return;
+      try {
+        const data = await ops.getPlaidAccounts(user.id);
+        setAccounts(data);
+      } catch (error) {
+        console.error('Error fetching accounts:', error);
+        setAccounts([]);
+      }
+    };
+    fetchAccounts();
+  }, [user]);
 
   // Credit Cards
   const addCard = async (card: CreditCard) => {
@@ -170,6 +187,7 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       goals,
       snapshots,
       settings,
+      accounts,
       aiChatState,
       loading,
       refetch,
