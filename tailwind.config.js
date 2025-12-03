@@ -19,7 +19,8 @@ export default {
                 accent: '#F59E0B', // Orange
                 danger: '#EF4444', // Red
                 card: '#FFFFFF',
-                background: '#F3F4F6'
+                background: '#F3F4F6',
+                black: '#0d1822'
             }
         }
     },
