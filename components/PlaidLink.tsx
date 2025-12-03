@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { usePlaidLink } from 'react-plaid-link';
 import { useAuth } from '../src/hooks/useAuth';
 import { createPlaidLinkToken, exchangePlaidToken } from '../src/lib/supabase/operations';
-import { Wallet, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface PlaidLinkProps {
@@ -89,7 +89,7 @@ export const PlaidLink: React.FC<PlaidLinkProps> = ({ onSuccess }) => {
     <button
       onClick={handleConnect}
       disabled={loading}
-      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+      className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 font-bold text-sm shadow-lg shadow-emerald-500/20"
     >
       {loading ? (
         <>
@@ -98,7 +98,7 @@ export const PlaidLink: React.FC<PlaidLinkProps> = ({ onSuccess }) => {
         </>
       ) : (
         <>
-          <Wallet className="w-5 h-5" />
+          <Plus size={18} />
           Connect Bank Account
         </>
       )}
