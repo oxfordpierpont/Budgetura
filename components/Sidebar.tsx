@@ -85,66 +85,78 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, setMobileOpen, onNavigate
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
           <div className="mb-6 space-y-2">
-            
-            <NavItem 
-                active={currentView === 'dashboard'} 
+
+            <NavItem
+                active={currentView === 'dashboard'}
                 onClick={() => handleNav('dashboard')}
-                icon={<LayoutDashboard size={20} />} 
+                icon={<LayoutDashboard size={20} />}
                 label="My Dashboard"
-                showDot 
+                showDot
             />
 
-            <NavItem 
-                active={currentView === 'credit-cards'}
-                onClick={() => handleNav('credit-cards')}
-                icon={<CreditCard size={20} />} 
-                label="Credit Cards"
-            />
-            
-            <NavItem 
-                active={currentView === 'loans'}
-                onClick={() => handleNav('loans')}
-                icon={<Wallet size={20} />} 
-                label="Loans"
-            />
-            
-            <NavItem 
+            <NavItem
                 active={currentView === 'bills'}
                 onClick={() => handleNav('bills')}
-                icon={<Receipt size={20} />} 
+                icon={<Receipt size={20} />}
                 label="Bills & Expenses"
-            />
-            
-            <NavItem
-                active={currentView === 'goals'}
-                onClick={() => handleNav('goals')}
-                icon={<Target size={20} />}
-                label="Financial Goals*"
             />
 
             <NavItem
                 active={currentView === 'bank-accounts'}
                 onClick={() => handleNav('bank-accounts')}
                 icon={<Building2 size={20} />}
-                label="My Accounts*"
+                label="My Accounts"
+            />
+
+            {/* Divider */}
+            <div className="pt-4 pb-2">
+                <div className="px-3 mb-2">
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Debt Management</p>
+                </div>
+            </div>
+
+            <NavItem
+                active={currentView === 'credit-cards'}
+                onClick={() => handleNav('credit-cards')}
+                icon={<CreditCard size={20} />}
+                label="Credit Cards"
+            />
+
+            <NavItem
+                active={currentView === 'loans'}
+                onClick={() => handleNav('loans')}
+                icon={<Wallet size={20} />}
+                label="Loans"
             />
 
             <NavItem
                 active={currentView === 'action-plan'}
                 onClick={() => handleNav('action-plan')}
                 icon={<CalendarCheck size={20} />}
-                label="Debt Action Plan*"
+                label="Debt Action Plan"
             />
-            
-            <NavItem 
+
+            {/* Divider */}
+            <div className="py-3">
+                <div className="border-t border-gray-800"></div>
+            </div>
+
+            <NavItem
+                active={currentView === 'goals'}
+                onClick={() => handleNav('goals')}
+                icon={<Target size={20} />}
+                label="Financial Goals"
+            />
+
+            <NavItem
                 active={currentView === 'progress'}
                 onClick={() => handleNav('progress')}
-                icon={<TrendingUp size={20} />} 
-                label="Progress Tracking*"
+                icon={<TrendingUp size={20} />}
+                label="Progress Tracking"
             />
-            
+
             {/* AI Chat Link */}
-             <button 
+             <button
                 onClick={() => handleNav('ai-chat')}
                 className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl cursor-pointer transition-all duration-300 group text-left mt-2
                 ${currentView === 'ai-chat' ? 'bg-purple-600/10 text-purple-400' : 'hover:bg-white/5 hover:text-purple-400 text-gray-500'}`}

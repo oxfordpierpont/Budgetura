@@ -65,7 +65,7 @@ function MainApp() {
             case 'action-plan':
                 return <ActionPlanView />;
             case 'progress':
-                return <ProgressView />;
+                return <ProgressView onNavigate={setCurrentView} />;
             case 'ai-chat':
                 return <AIChatView initialPrompt={initialAiPrompt} onClose={() => setCurrentView('dashboard')} />;
             case 'settings':
