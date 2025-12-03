@@ -31,6 +31,9 @@ const SettingsView = () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [newEmail, setNewEmail] = useState('');
 
+  // Avatar file state
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
   // Load user data when component mounts
   React.useEffect(() => {
     if (user) {
@@ -48,6 +51,16 @@ const SettingsView = () => {
     input.onchange = (e: any) => {
       const file = e.target.files?.[0];
       if (file) {
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          toast.error('Image must be less than 2MB');
+          return;
+        }
+
+        // Store the file for upload
+        setAvatarFile(file);
+
+        // Create preview URL (this won't be saved to storage)
         const reader = new FileReader();
         reader.onload = (event) => {
           setAvatarUrl(event.target?.result as string);
@@ -66,13 +79,45 @@ const SettingsView = () => {
 
     try {
       setSaving(true);
+      let uploadedAvatarUrl = avatarUrl;
+
+      // Upload avatar to Supabase Storage if a new file was selected
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('user-uploads')
+          .upload(filePath, avatarFile, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast.error('Failed to upload image');
+          return;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('user-uploads')
+          .getPublicUrl(filePath);
+
+        uploadedAvatarUrl = urlData.publicUrl;
+
+        // Clear the file state
+        setAvatarFile(null);
+      }
 
       // Update user metadata
       const { error } = await supabase.auth.updateUser({
         data: {
           full_name: fullName,
           phone: phone,
-          avatar_url: avatarUrl,
+          avatar_url: uploadedAvatarUrl,
         }
       });
 
