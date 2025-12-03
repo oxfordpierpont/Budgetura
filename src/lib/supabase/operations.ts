@@ -427,13 +427,20 @@ export const exchangePlaidToken = async (userId: string, publicToken: string) =>
 
 /**
  * Get all Plaid-connected bank accounts for a user
+ * Only returns accounts from active Plaid items (connected banks)
  */
 export const getPlaidAccounts = async (userId: string): Promise<PlaidAccount[]> => {
   const { data, error } = await supabase
     .from('plaid_accounts')
-    .select('*')
+    .select(`
+      *,
+      plaid_items!inner (
+        status
+      )
+    `)
     .eq('user_id', userId)
     .eq('is_active', true)
+    .eq('plaid_items.status', 'active')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -457,14 +464,24 @@ export const getPlaidItems = async (userId: string): Promise<PlaidItem[]> => {
 
 /**
  * Disconnect a Plaid item (remove bank connection)
+ * Also deactivates all associated accounts
  */
 export const disconnectPlaidItem = async (itemId: string) => {
-  const { error } = await supabase
+  // First, deactivate the item
+  const { error: itemError } = await supabase
     .from('plaid_items')
     .update({ status: 'inactive' })
     .eq('item_id', itemId);
 
-  if (error) throw error;
+  if (itemError) throw itemError;
+
+  // Then, deactivate all associated accounts
+  const { error: accountsError } = await supabase
+    .from('plaid_accounts')
+    .update({ is_active: false })
+    .eq('item_id', itemId);
+
+  if (accountsError) throw accountsError;
 };
 
 /**
