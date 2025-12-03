@@ -187,11 +187,10 @@
 
 ### **1.1 Purpose** {#1.1-purpose}
 
-Budgetura is a comprehensive React-based web application that transforms traditional debt management from static spreadsheets into an interactive, real-time financial tracking system. Unlike the previous WordPress plugin version, this is a **full-featured fintech application** with advanced calculations, data visualization, predictive analytics, and secure user data management.
+Budgetura is a comprehensive React-based web application that transforms traditional debt management from static spreadsheets into an interactive, real-time financial tracking system. It is a **full-featured fintech application** with advanced calculations, data visualization, predictive analytics, and secure user data management.
 
-**Key Differentiators from WordPress Version:**
+**Key Features:**
 
-* **Standalone Application:** No dependency on WordPress CMS  
 * **Real-time Calculations:** Instant feedback as users input data  
 * **Advanced Visualizations:** Interactive charts with Recharts library  
 * **Progressive Web App:** Works offline, installable on mobile devices  
