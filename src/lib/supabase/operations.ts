@@ -417,13 +417,40 @@ export const updateUserSettings = async (userId: string, settings: Partial<any>)
   if (settings.snapshotFrequency !== undefined) updateData.snapshot_frequency = settings.snapshotFrequency;
   if (settings.emailNotifications !== undefined) updateData.email_notifications = settings.emailNotifications;
 
-  const { data, error } = await supabase
+  // First check if profile exists
+  const { data: existingProfile } = await supabase
     .from('user_profiles')
-    .upsert(updateData, { onConflict: 'id' })
-    .select()
+    .select('id')
+    .eq('id', userId)
     .single();
 
-  if (error) throw error;
+  let data, error;
+
+  if (!existingProfile) {
+    // Create new profile if it doesn't exist
+    const result = await supabase
+      .from('user_profiles')
+      .insert(updateData)
+      .select()
+      .single();
+    data = result.data;
+    error = result.error;
+  } else {
+    // Update existing profile
+    const result = await supabase
+      .from('user_profiles')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+    data = result.data;
+    error = result.error;
+  }
+
+  if (error) {
+    console.error('Error saving user settings:', error);
+    throw error;
+  }
   return data;
 };
 
