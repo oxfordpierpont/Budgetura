@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { usePlaid } from '../src/hooks/usePlaid';
 import { PlaidLink } from './PlaidLink';
 import { disconnectPlaidItem } from '../src/lib/supabase/operations';
-import { Building2, CreditCard, Trash2, RefreshCw, AlertCircle, Plus, Wallet, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Building2, CreditCard, Trash2, RefreshCw, AlertCircle, Plus, Wallet, ShieldCheck, ArrowRight, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useDebt } from '../context/DebtContext';
 
 export const BankAccounts: React.FC = () => {
   const { accounts, items, loading, error, refetch } = usePlaid();
+  const { syncTransactions } = useDebt();
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const handleDisconnect = async (itemId: string) => {
     const confirmed = window.confirm(
@@ -26,6 +29,20 @@ export const BankAccounts: React.FC = () => {
       toast.error('Failed to disconnect bank');
     } finally {
       setDisconnecting(null);
+    }
+  };
+
+  const handleSyncTransactions = async () => {
+    try {
+      setSyncing(true);
+      toast.loading('Syncing transactions from Plaid...', { id: 'sync-txn' });
+      await syncTransactions();
+      toast.success('Transactions synced successfully!', { id: 'sync-txn' });
+    } catch (error: any) {
+      console.error('Error syncing transactions:', error);
+      toast.error('Failed to sync transactions', { id: 'sync-txn' });
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -60,7 +77,28 @@ export const BankAccounts: React.FC = () => {
             Connect your bank accounts to track balances and transactions.
           </p>
         </div>
-        <PlaidLink onSuccess={refetch} />
+        <div className="flex items-center gap-3">
+          {items.length > 0 && (
+            <button
+              onClick={handleSyncTransactions}
+              disabled={syncing}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:shadow-blue-700/30 transition-all disabled:cursor-not-allowed"
+            >
+              {syncing ? (
+                <>
+                  <RefreshCw size={18} className="animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <Download size={18} />
+                  Sync Transactions
+                </>
+              )}
+            </button>
+          )}
+          <PlaidLink onSuccess={refetch} />
+        </div>
       </div>
 
       {error && (
