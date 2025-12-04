@@ -5,6 +5,38 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2025-12-04
+
+### Fixed
+- **Goals navigation bug** - "See All" button in Goals Progress section now works
+  - Added missing `onClick={() => onNavigate('goals')}` handler to the button in DashboardView.tsx
+  - Button now properly navigates to the Goals Manager when clicked
+
+- **Critical deployment issue** - App showing black screen/loading forever
+  - Root cause: Supabase environment variables not being injected at build time
+  - Fixed Dockerfile build process to accept `--build-arg` for VITE environment variables
+  - Environment variables now properly baked into JavaScript bundle during build
+  - Updated deployment process to pass build arguments with credentials
+
+- **Browser caching preventing updates** - Changes not visible to users after deployment
+  - Updated nginx.conf to disable caching for HTML files
+  - HTML files now use `Cache-Control: no-store, no-cache` headers
+  - Static assets (JS/CSS) still cached long-term via content-hash filenames
+  - Ensures users always get the latest version without hard refresh
+
+### Changed
+- Enhanced error handling in index.tsx with visual error messages
+- Changed index.html background from black to white for better error visibility
+- Added comprehensive console logging for debugging React initialization
+- Added loading indicator in root element while React loads
+
+### Technical Details
+- The black screen issue was caused by Vite requiring environment variables at build time, not runtime
+- Docker service environment variables alone are insufficient for static JavaScript bundles
+- Build-time injection via `--build-arg` is required for Vite to embed values in compiled code
+
+---
+
 ## [2.4.0] - 2025-12-03
 
 ### Added
@@ -222,6 +254,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **2.4.1** - Navigation and deployment fixes
 - **2.4.0** - Mortgage dummy data integration
 - **2.3.0** - Complete Mortgage Manager with CRUD functionality
 - **2.2.0** - Plaid bank account integration
@@ -234,6 +267,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[2.4.1]: https://github.com/oxfordpierpont/Budgetura/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.1.3...v2.2.0
