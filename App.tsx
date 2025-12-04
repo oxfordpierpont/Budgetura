@@ -13,6 +13,7 @@ import { ProtectedRoute } from './src/components/ProtectedRoute';
 
 // Existing app (will be refactored with proper routing)
 import { DebtProvider } from './context/DebtContext';
+import { StripeProvider } from './src/context/StripeContext';
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/DashboardView';
 import SettingsView from './components/SettingsView';
@@ -88,38 +89,40 @@ function MainApp() {
     };
 
     return (
-        <DebtProvider>
-            <div className="flex flex-col lg:flex-row w-full min-h-screen lg:h-[calc(100vh-32px)] bg-[#081016] font-sans isolate relative">
-                <Sidebar
-                    mobileOpen={mobileMenuOpen}
-                    setMobileOpen={setMobileMenuOpen}
-                    onNavigate={setCurrentView}
-                    currentView={currentView}
-                />
+        <StripeProvider>
+            <DebtProvider>
+                <div className="flex flex-col lg:flex-row w-full min-h-screen lg:h-[calc(100vh-32px)] bg-[#081016] font-sans isolate relative">
+                    <Sidebar
+                        mobileOpen={mobileMenuOpen}
+                        setMobileOpen={setMobileMenuOpen}
+                        onNavigate={setCurrentView}
+                        currentView={currentView}
+                    />
 
-                <div className="flex-1 flex flex-col lg:my-3 lg:mr-3 bg-[#F3F4F6] lg:rounded-[32px] lg:overflow-hidden shadow-2xl relative z-0">
-                    {/* Mobile Header for Views other than Dashboard */}
-                    {currentView !== 'dashboard' && currentView !== 'ai-chat' && (
-                        <div className="lg:hidden p-4 bg-white border-b border-gray-100 flex items-center sticky top-0 z-20">
-                            <button
-                                onClick={() => setMobileMenuOpen(true)}
-                                className="p-2 -ml-2 rounded-lg text-gray-600"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            </button>
-                            <span className="ml-3 font-bold text-gray-900 capitalize">{currentView.replace('-', ' ')}</span>
-                        </div>
-                    )}
+                    <div className="flex-1 flex flex-col lg:my-3 lg:mr-3 bg-[#F3F4F6] lg:rounded-[32px] lg:overflow-hidden shadow-2xl relative z-0">
+                        {/* Mobile Header for Views other than Dashboard */}
+                        {currentView !== 'dashboard' && currentView !== 'ai-chat' && (
+                            <div className="lg:hidden p-4 bg-white border-b border-gray-100 flex items-center sticky top-0 z-20">
+                                <button
+                                    onClick={() => setMobileMenuOpen(true)}
+                                    className="p-2 -ml-2 rounded-lg text-gray-600"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
+                                <span className="ml-3 font-bold text-gray-900 capitalize">{currentView.replace('-', ' ')}</span>
+                            </div>
+                        )}
 
-                    {renderContent()}
+                        {renderContent()}
+                    </div>
+
+                    {/* Global Floating Chat */}
+                    <FloatingChatPanel />
                 </div>
-
-                {/* Global Floating Chat */}
-                <FloatingChatPanel />
-            </div>
-        </DebtProvider>
+            </DebtProvider>
+        </StripeProvider>
     );
 }
 

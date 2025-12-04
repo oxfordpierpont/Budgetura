@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { Save, Bot, Database, Trash2, Layout, Shield, Wand2, User, Mail, Lock, Phone, CreditCard, Sliders, ChevronDown, AlertTriangle, X, Eye, EyeOff, Check, Download } from 'lucide-react';
 import { useAuth } from '../src/hooks/useAuth';
 import { useDebt } from '../context/DebtContext';
+import { useStripe, formatPrice, getPlanDetails } from '../src/context/StripeContext';
 import { generateDummyDataForUser } from '../src/lib/generateDummyData';
 import { clearAllUserData } from '../src/lib/supabase/operations';
 import { supabase } from '../src/lib/supabase/client';
 import toast from 'react-hot-toast';
+import { format } from 'date-fns';
 
 const SettingsView = () => {
   const { user, updatePassword } = useAuth();
   const { refetch } = useDebt();
+  const { subscription, invoices, loading: stripeLoading, createCheckoutSession, openCustomerPortal } = useStripe();
   const [generating, setGenerating] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -263,6 +266,29 @@ const SettingsView = () => {
       setTimeout(() => setMessage(''), 5000);
     }
   };
+
+  // Stripe handlers
+  const handlePlanChange = async (planId: 'free' | 'basic' | 'plus' | 'premium') => {
+    if (planId === 'free') {
+      // Open customer portal to cancel subscription
+      await openCustomerPortal();
+    } else {
+      // Create checkout session for paid plan
+      await createCheckoutSession(planId);
+    }
+  };
+
+  const handleDownloadInvoice = (invoiceUrl: string | null) => {
+    if (invoiceUrl) {
+      window.open(invoiceUrl, '_blank');
+    } else {
+      toast.error('Invoice not available');
+    }
+  };
+
+  // Get current plan from subscription or default to free
+  const currentPlan = subscription?.plan_id || 'free';
+  const currentPlanDetails = getPlanDetails(currentPlan);
 
   return (
     <div className="flex-1 flex flex-col h-full lg:overflow-y-auto custom-scrollbar bg-[#F3F4F6] p-4 md:p-8 space-y-8">
@@ -540,131 +566,208 @@ const SettingsView = () => {
             </div>
 
             <div className="p-6 md:p-8 space-y-8">
-                {/* Current Plan Overview */}
-                <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <h4 className="text-sm font-bold text-emerald-900 uppercase tracking-wider">Current Plan</h4>
-                            <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">ACTIVE</span>
-                        </div>
-                        <div className="flex items-baseline gap-2 mb-1">
-                            <span className="text-3xl font-black text-gray-900">Plus</span>
-                            <span className="text-lg text-gray-500 font-medium">Plan</span>
-                        </div>
-                        <p className="text-sm text-gray-500">$19.99/month • Next billing date: <span className="font-bold text-gray-700">Oct 24, 2023</span></p>
+                {/* Loading State */}
+                {stripeLoading ? (
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                        <p className="text-sm text-gray-500 mt-4">Loading subscription data...</p>
                     </div>
-                    <div className="flex flex-col items-end gap-3 w-full md:w-auto">
-                        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto">
-                            <div className="w-8 h-5 bg-gray-800 rounded flex items-center justify-center text-white text-[8px] font-bold">VISA</div>
-                            <span className="text-sm font-medium text-gray-600">•••• 4242</span>
-                            <span className="text-xs text-gray-400 ml-auto">Exp 12/25</span>
-                        </div>
-                        <button className="text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline">Manage Payment Method</button>
-                    </div>
-                </div>
-
-                {/* Plan Grid */}
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-4">Available Plans</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Free Plan */}
-                        <div className="border border-gray-200 rounded-2xl p-5 hover:border-gray-300 transition-all">
-                            <h5 className="font-bold text-gray-900 text-lg">Free</h5>
-                            <p className="text-2xl font-black text-gray-900 my-2">$0<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                            <p className="text-xs text-gray-500 mb-4">Essential tracking for casual users.</p>
-                            <button className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
-                            <ul className="mt-6 space-y-2">
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Manual Tracking</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> 1 Goal</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Basic Reports</li>
-                            </ul>
-                        </div>
-
-                        {/* Basic Plan */}
-                        <div className="border border-gray-200 rounded-2xl p-5 hover:border-gray-300 transition-all">
-                            <h5 className="font-bold text-gray-900 text-lg">Basic</h5>
-                            <p className="text-2xl font-black text-gray-900 my-2">$9<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                            <p className="text-xs text-gray-500 mb-4">Automated syncing for starters.</p>
-                            <button className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
-                            <ul className="mt-6 space-y-2">
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Bank Syncing (3 Accts)</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> 5 Goals</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Debt Projections</li>
-                            </ul>
-                        </div>
-
-                        {/* Plus Plan (Current) */}
-                        <div className="border-2 border-emerald-500 bg-emerald-50/10 rounded-2xl p-5 relative shadow-sm">
-                            <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
-                            <h5 className="font-bold text-emerald-700 text-lg">Plus</h5>
-                            <p className="text-2xl font-black text-gray-900 my-2">$19<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                            <p className="text-xs text-gray-500 mb-4">Advanced AI & unlimited tracking.</p>
-                            <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
-                            <ul className="mt-6 space-y-2">
-                                <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Unlimited Accounts</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> AI Financial Coach</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Advanced Analytics</li>
-                            </ul>
+                ) : (
+                    <>
+                        {/* Current Plan Overview */}
+                        <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <h4 className="text-sm font-bold text-emerald-900 uppercase tracking-wider">Current Plan</h4>
+                                    {subscription?.status === 'active' && (
+                                        <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">ACTIVE</span>
+                                    )}
+                                    {subscription?.status === 'trialing' && (
+                                        <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">TRIAL</span>
+                                    )}
+                                    {subscription?.status === 'past_due' && (
+                                        <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200">PAST DUE</span>
+                                    )}
+                                </div>
+                                <div className="flex items-baseline gap-2 mb-1">
+                                    <span className="text-3xl font-black text-gray-900 capitalize">{currentPlanDetails.name}</span>
+                                    <span className="text-lg text-gray-500 font-medium">Plan</span>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                    {currentPlanDetails.price}/month
+                                    {subscription?.current_period_end && subscription.status === 'active' && (
+                                        <> • Next billing: <span className="font-bold text-gray-700">{format(new Date(subscription.current_period_end), 'MMM dd, yyyy')}</span></>
+                                    )}
+                                    {subscription?.cancel_at_period_end && (
+                                        <> • <span className="font-bold text-orange-700">Cancels {format(new Date(subscription.current_period_end!), 'MMM dd, yyyy')}</span></>
+                                    )}
+                                </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-3 w-full md:w-auto">
+                                {subscription?.stripe_customer_id && currentPlan !== 'free' && (
+                                    <button
+                                        onClick={openCustomerPortal}
+                                        className="text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
+                                    >
+                                        Manage Subscription
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Premium Plan */}
-                        <div className="border border-indigo-200 bg-indigo-50/30 rounded-2xl p-5 hover:border-indigo-300 transition-all relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 opacity-10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                            <h5 className="font-bold text-indigo-900 text-lg">Premium</h5>
-                            <p className="text-2xl font-black text-gray-900 my-2">$29<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                            <p className="text-xs text-gray-500 mb-4">Live coaching & white-glove support.</p>
-                            <button className="w-full py-2 rounded-lg bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Upgrade</button>
-                            <ul className="mt-6 space-y-2">
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> All Plus Features</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> Live 1:1 Coaching</li>
-                                <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> Priority Support</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                        {/* Plan Grid */}
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Available Plans</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {/* Free Plan */}
+                                <div className={`border rounded-2xl p-5 hover:border-gray-300 transition-all ${currentPlan === 'free' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-gray-200'}`}>
+                                    {currentPlan === 'free' && (
+                                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
+                                    )}
+                                    <h5 className="font-bold text-gray-900 text-lg">Free</h5>
+                                    <p className="text-2xl font-black text-gray-900 my-2">$0<span className="text-sm font-medium text-gray-400">/mo</span></p>
+                                    <p className="text-xs text-gray-500 mb-4">Essential tracking for casual users.</p>
+                                    {currentPlan === 'free' ? (
+                                        <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
+                                    ) : (
+                                        <button onClick={() => handlePlanChange('free')} className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
+                                    )}
+                                    <ul className="mt-6 space-y-2">
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Manual Tracking</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> 1 Goal</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Basic Reports</li>
+                                    </ul>
+                                </div>
 
-                {/* Billing History */}
-                <div>
-                    <h4 className="font-bold text-gray-900 mb-4">Billing History</h4>
-                    <div className="border border-gray-200 rounded-2xl overflow-hidden">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
-                                <tr>
-                                    <th className="p-4">Date</th>
-                                    <th className="p-4">Amount</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4 text-right">Invoice</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                <tr className="hover:bg-gray-50 transition-colors">
-                                    <td className="p-4 text-gray-900 font-medium">Sep 24, 2023</td>
-                                    <td className="p-4 text-gray-600">$19.99</td>
-                                    <td className="p-4"><span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-md">Paid</span></td>
-                                    <td className="p-4 text-right">
-                                        <button className="text-gray-400 hover:text-gray-600 transition-colors"><Download size={16} /></button>
-                                    </td>
-                                </tr>
-                                <tr className="hover:bg-gray-50 transition-colors">
-                                    <td className="p-4 text-gray-900 font-medium">Aug 24, 2023</td>
-                                    <td className="p-4 text-gray-600">$19.99</td>
-                                    <td className="p-4"><span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-md">Paid</span></td>
-                                    <td className="p-4 text-right">
-                                        <button className="text-gray-400 hover:text-gray-600 transition-colors"><Download size={16} /></button>
-                                    </td>
-                                </tr>
-                                <tr className="hover:bg-gray-50 transition-colors">
-                                    <td className="p-4 text-gray-900 font-medium">Jul 24, 2023</td>
-                                    <td className="p-4 text-gray-600">$9.99</td>
-                                    <td className="p-4"><span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-md">Paid</span></td>
-                                    <td className="p-4 text-right">
-                                        <button className="text-gray-400 hover:text-gray-600 transition-colors"><Download size={16} /></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                {/* Basic Plan */}
+                                <div className={`border rounded-2xl p-5 hover:border-gray-300 transition-all ${currentPlan === 'basic' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-gray-200'}`}>
+                                    {currentPlan === 'basic' && (
+                                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
+                                    )}
+                                    <h5 className="font-bold text-gray-900 text-lg">Basic</h5>
+                                    <p className="text-2xl font-black text-gray-900 my-2">$9<span className="text-sm font-medium text-gray-400">/mo</span></p>
+                                    <p className="text-xs text-gray-500 mb-4">Automated syncing for starters.</p>
+                                    {currentPlan === 'basic' ? (
+                                        <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
+                                    ) : currentPlanDetails.pricePerMonth > 9 ? (
+                                        <button onClick={() => handlePlanChange('basic')} className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
+                                    ) : (
+                                        <button onClick={() => handlePlanChange('basic')} className="w-full py-2 rounded-lg bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors">Upgrade</button>
+                                    )}
+                                    <ul className="mt-6 space-y-2">
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Bank Syncing (3 Accts)</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> 5 Goals</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Debt Projections</li>
+                                    </ul>
+                                </div>
+
+                                {/* Plus Plan */}
+                                <div className={`border rounded-2xl p-5 hover:border-gray-300 transition-all relative ${currentPlan === 'plus' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-gray-200'}`}>
+                                    {currentPlan === 'plus' && (
+                                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
+                                    )}
+                                    <h5 className={`font-bold text-lg ${currentPlan === 'plus' ? 'text-emerald-700' : 'text-gray-900'}`}>Plus</h5>
+                                    <p className="text-2xl font-black text-gray-900 my-2">$19<span className="text-sm font-medium text-gray-400">/mo</span></p>
+                                    <p className="text-xs text-gray-500 mb-4">Advanced AI & unlimited tracking.</p>
+                                    {currentPlan === 'plus' ? (
+                                        <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
+                                    ) : currentPlanDetails.pricePerMonth > 19 ? (
+                                        <button onClick={() => handlePlanChange('plus')} className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
+                                    ) : (
+                                        <button onClick={() => handlePlanChange('plus')} className="w-full py-2 rounded-lg bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20">Upgrade</button>
+                                    )}
+                                    <ul className="mt-6 space-y-2">
+                                        <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Unlimited Accounts</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> AI Financial Coach</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Advanced Analytics</li>
+                                    </ul>
+                                </div>
+
+                                {/* Premium Plan */}
+                                <div className={`border rounded-2xl p-5 hover:border-indigo-300 transition-all relative overflow-hidden group ${currentPlan === 'premium' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-indigo-200 bg-indigo-50/30'}`}>
+                                    {currentPlan === 'premium' && (
+                                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase z-10">Current</div>
+                                    )}
+                                    <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 opacity-10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                                    <h5 className="font-bold text-indigo-900 text-lg">Premium</h5>
+                                    <p className="text-2xl font-black text-gray-900 my-2">$29<span className="text-sm font-medium text-gray-400">/mo</span></p>
+                                    <p className="text-xs text-gray-500 mb-4">Live coaching & white-glove support.</p>
+                                    {currentPlan === 'premium' ? (
+                                        <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
+                                    ) : (
+                                        <button onClick={() => handlePlanChange('premium')} className="w-full py-2 rounded-lg bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Upgrade</button>
+                                    )}
+                                    <ul className="mt-6 space-y-2">
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> All Plus Features</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> Live 1:1 Coaching</li>
+                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> Priority Support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Billing History */}
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Billing History</h4>
+                            {invoices.length > 0 ? (
+                                <div className="border border-gray-200 rounded-2xl overflow-hidden">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 font-medium">
+                                            <tr>
+                                                <th className="p-4">Date</th>
+                                                <th className="p-4">Amount</th>
+                                                <th className="p-4">Status</th>
+                                                <th className="p-4 text-right">Invoice</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {invoices.map((invoice) => (
+                                                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="p-4 text-gray-900 font-medium">
+                                                        {format(new Date(invoice.created_at), 'MMM dd, yyyy')}
+                                                    </td>
+                                                    <td className="p-4 text-gray-600">
+                                                        {formatPrice(invoice.amount_paid, invoice.currency)}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <span className={`text-xs font-bold px-2 py-1 rounded-md ${
+                                                            invoice.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                                                            invoice.status === 'open' ? 'bg-blue-100 text-blue-700' :
+                                                            invoice.status === 'void' ? 'bg-gray-100 text-gray-700' :
+                                                            'bg-red-100 text-red-700'
+                                                        }`}>
+                                                            {invoice.status.toUpperCase()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        {invoice.invoice_pdf ? (
+                                                            <button
+                                                                onClick={() => handleDownloadInvoice(invoice.invoice_pdf)}
+                                                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                                title="Download Invoice PDF"
+                                                            >
+                                                                <Download size={16} />
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-gray-300">
+                                                                <Download size={16} />
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="border border-gray-200 rounded-2xl p-8 text-center">
+                                    <p className="text-gray-500">No billing history yet</p>
+                                    <p className="text-xs text-gray-400 mt-2">Your invoices will appear here after your first payment</p>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </section>
 
