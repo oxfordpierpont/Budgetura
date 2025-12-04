@@ -183,10 +183,22 @@ export default function ReportsView() {
           }
       } else {
           // Fallback to manual data when no Plaid transactions
-          const baseIncome = isDaily ? settings.monthlyIncome / 30 : settings.monthlyIncome;
-          const baseExpense = isDaily
-            ? (bills.reduce((s,b) => s + b.amount, 0) + cards.reduce((s,c) => s + c.minimumPayment, 0) + loans.reduce((s,l) => s + l.monthlyPayment, 0)) / 30
-            : (bills.reduce((s,b) => s + b.amount, 0) + cards.reduce((s,c) => s + c.minimumPayment, 0) + loans.reduce((s,l) => s + l.monthlyPayment, 0));
+          // Calculate base monthly obligations
+          const monthlyObligations =
+              bills.reduce((s,b) => s + b.amount, 0) +
+              cards.reduce((s,c) => s + c.minimumPayment + (c.extraPayment || 0), 0) +
+              loans.reduce((s,l) => s + l.monthlyPayment + (l.extraPayment || 0), 0);
+
+          // Estimate income: Use settings if available, otherwise estimate 140% of obligations
+          // (assumes 40% of income left after bills for other expenses + savings)
+          let estimatedMonthlyIncome = settings.monthlyIncome || 0;
+          if (estimatedMonthlyIncome === 0 && monthlyObligations > 0) {
+              estimatedMonthlyIncome = monthlyObligations * 1.4;
+          }
+
+          // Calculate base amounts for time period
+          const baseIncome = isDaily ? estimatedMonthlyIncome / 30 : estimatedMonthlyIncome;
+          const baseExpense = isDaily ? monthlyObligations / 30 : monthlyObligations;
 
           for(let i = points - 1; i >= 0; i--) {
               const date = new Date(now);
@@ -196,9 +208,13 @@ export default function ReportsView() {
                   date.setMonth(date.getMonth() - i);
               }
 
-              const variance = isDaily ? 0.5 : 0.1;
-              const income = baseIncome + (Math.random() * (baseIncome * variance * 2) - (baseIncome * variance));
-              const expense = baseExpense + (Math.random() * (baseExpense * variance * 2) - (baseExpense * variance));
+              // Add realistic variance
+              const variance = isDaily ? 0.15 : 0.08;
+              const incomeVariance = (Math.random() * 2 - 1) * (baseIncome * variance);
+              const expenseVariance = (Math.random() * 2 - 1) * (baseExpense * variance);
+
+              const income = Math.max(0, baseIncome + incomeVariance);
+              const expense = Math.max(0, baseExpense + expenseVariance);
               const savings = income - expense;
               const rate = income > 0 ? (savings / income) * 100 : 0;
 
