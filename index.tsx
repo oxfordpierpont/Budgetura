@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
+console.log('🚀 Budgetura: index.tsx loaded');
+
 // Clean up localStorage if it's causing quota issues
 try {
   // Check if localStorage is accessible and not full
@@ -42,12 +44,20 @@ try {
 const rootElement = document.getElementById('Budgetura-root');
 
 if (!rootElement) {
-  console.error("Could not find root element 'Budgetura-root' to mount to.");
+  console.error("❌ ERROR: Could not find root element 'Budgetura-root' to mount to.");
+  document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;"><div style="text-align:center;"><h1 style="color:red;">Error</h1><p>Could not find root element to mount app.</p></div></div>';
 } else {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+  console.log('✅ Root element found, mounting React app...');
+  try {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+    console.log('✅ React app rendered successfully');
+  } catch (error) {
+    console.error('❌ Error rendering React app:', error);
+    rootElement.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;"><div style="text-align:center;"><h1 style="color:red;">Rendering Error</h1><p>Failed to render application. Check console for details.</p></div></div>';
+  }
 }
