@@ -5,6 +5,31 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-12-04
+
+### Added
+- **Billing & Subscription Section** - New section in Settings page
+  - Current plan overview displaying active subscription (Plus Plan)
+  - Payment method display showing VISA card ending in 4242
+  - Available plans grid with 4 pricing tiers:
+    - Free Plan ($0/month) - Manual tracking, 1 goal, basic reports
+    - Basic Plan ($9/month) - Bank syncing (3 accounts), 5 goals, debt projections
+    - Plus Plan ($19/month) - Unlimited accounts, AI coach, advanced analytics [CURRENT]
+    - Premium Plan ($29/month) - All Plus features, live 1:1 coaching, priority support
+  - Billing history table with downloadable invoices
+  - Upgrade/downgrade action buttons for plan management
+  - Responsive design for mobile, tablet, and desktop
+  - Emerald-themed UI matching settings page aesthetics
+  - Added `Check` and `Download` icons from lucide-react
+
+### Technical Details
+- Static UI implementation (no backend integration yet)
+- Hardcoded plan data for demonstration purposes
+- Button actions are placeholders pending payment processor integration
+- Future integration will require Stripe/Paddle or similar payment service
+
+---
+
 ## [2.4.1] - 2025-12-04
 
 ### Fixed
@@ -254,6 +279,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **2.5.0** - Billing & Subscription section in Settings
 - **2.4.1** - Navigation and deployment fixes
 - **2.4.0** - Mortgage dummy data integration
 - **2.3.0** - Complete Mortgage Manager with CRUD functionality
@@ -267,6 +293,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[2.5.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/oxfordpierpont/Budgetura/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.2.0...v2.3.0
