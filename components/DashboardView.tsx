@@ -170,7 +170,10 @@ const DashboardView: React.FC<Props> = ({ setMobileMenuOpen, onAskAI, onNavigate
            <div className="mb-10">
               <div className="flex justify-between items-end mb-6">
                   <h3 className="font-bold text-gray-900 text-lg">Goals Progress</h3>
-                  <button className="text-xs font-bold text-blue-500 hover:text-blue-600 flex items-center gap-1">
+                  <button
+                      onClick={() => onNavigate('goals')}
+                      className="text-xs font-bold text-blue-500 hover:text-blue-600 flex items-center gap-1 transition-colors"
+                  >
                       See All <ArrowUpRight size={12} />
                   </button>
               </div>
