@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage, PlaidAccount } from '../types';
+import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage, PlaidAccount, PlaidTransaction } from '../types';
 import { useSupabaseData } from '../src/hooks/useSupabaseData';
 import { useAuth } from '../src/hooks/useAuth';
 import * as ops from '../src/lib/supabase/operations';
@@ -19,10 +19,12 @@ interface DebtContextType {
   snapshots: Snapshot[];
   settings: UserSettings;
   accounts: PlaidAccount[];
+  transactions: PlaidTransaction[];
   aiChatState: AIChatState;
   loading: boolean;
   refetch: () => Promise<void>;
   setAIChatState: (state: AIChatState) => void;
+  syncTransactions: () => Promise<void>;
   addCard: (card: CreditCard) => Promise<void>;
   updateCard: (id: string, card: Partial<CreditCard>) => Promise<void>;
   deleteCard: (id: string) => Promise<void>;
@@ -49,6 +51,7 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { cards, loans, mortgages, bills, goals, snapshots, settings, loading, refetch } = useSupabaseData();
   const [aiChatState, setAIChatState] = useState<AIChatState>({ isOpen: false });
   const [accounts, setAccounts] = useState<PlaidAccount[]>([]);
+  const [transactions, setTransactions] = useState<PlaidTransaction[]>([]);
 
   // Fetch Plaid accounts
   useEffect(() => {
@@ -64,6 +67,50 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     fetchAccounts();
   }, [user]);
+
+  // Fetch Plaid transactions
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!user) return;
+      try {
+        // Get last 90 days of transactions
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 90);
+
+        const data = await ops.getPlaidTransactions(user.id, {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+        });
+        setTransactions(data);
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        setTransactions([]);
+      }
+    };
+    fetchTransactions();
+  }, [user]);
+
+  // Sync transactions from Plaid
+  const syncTransactions = async () => {
+    if (!user) return;
+    try {
+      await ops.syncPlaidTransactions(user.id);
+      // Refetch transactions after sync
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 90);
+
+      const data = await ops.getPlaidTransactions(user.id, {
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+      });
+      setTransactions(data);
+    } catch (error) {
+      console.error('Error syncing transactions:', error);
+      throw error;
+    }
+  };
 
   // Credit Cards
   const addCard = async (card: CreditCard) => {
@@ -188,10 +235,12 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       snapshots,
       settings,
       accounts,
+      transactions,
       aiChatState,
       loading,
       refetch,
       setAIChatState,
+      syncTransactions,
       addCard,
       updateCard,
       deleteCard,

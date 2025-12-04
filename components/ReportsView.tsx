@@ -45,7 +45,7 @@ const CustomTooltip = ({ active, payload, label, formatter }: any) => {
 export default function ReportsView() {
   const [currentReport, setCurrentReport] = useState<ReportType>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('year');
-  const { settings, cards, loans, bills, accounts, setAIChatState } = useDebt();
+  const { settings, cards, loans, bills, accounts, transactions, setAIChatState } = useDebt();
 
   // --- Dynamic Data Generators ---
   
@@ -110,7 +110,7 @@ export default function ReportsView() {
       return data;
   }, [accounts, cards, loans, timeRange]);
 
-  // 2. Income vs Expenses
+  // 2. Income vs Expenses (using real Plaid transaction data)
   const incomeExpenseData = useMemo(() => {
       let points = 6; // Default
       let isDaily = false;
@@ -123,38 +123,97 @@ export default function ReportsView() {
           case 'all': points = 24; isDaily = false; break;
       }
 
-      const data = [];
+      const data: Array<{ month: string; Income: number; Expenses: number; Savings: number; SavingsRate: number }> = [];
       const now = new Date();
-      // Adjust base amounts for daily vs monthly view
-      const baseIncome = isDaily ? settings.monthlyIncome / 30 : settings.monthlyIncome;
-      const baseExpense = isDaily 
-        ? (bills.reduce((s,b) => s + b.amount, 0) + cards.reduce((s,c) => s + c.minimumPayment, 0) + loans.reduce((s,l) => s + l.monthlyPayment, 0)) / 30 
-        : (bills.reduce((s,b) => s + b.amount, 0) + cards.reduce((s,c) => s + c.minimumPayment, 0) + loans.reduce((s,l) => s + l.monthlyPayment, 0));
 
-      for(let i = points - 1; i >= 0; i--) {
-          const date = new Date(now);
-          if (isDaily) {
-              date.setDate(date.getDate() - i);
-          } else {
-              date.setMonth(date.getMonth() - i);
+      // Use Plaid transactions if available, otherwise fall back to manual data
+      const hasTransactions = transactions && transactions.length > 0;
+
+      if (hasTransactions) {
+          // Calculate from real Plaid transaction data
+          for(let i = points - 1; i >= 0; i--) {
+              const periodStart = new Date(now);
+              const periodEnd = new Date(now);
+
+              if (isDaily) {
+                  periodStart.setDate(now.getDate() - i);
+                  periodStart.setHours(0, 0, 0, 0);
+                  periodEnd.setDate(now.getDate() - i);
+                  periodEnd.setHours(23, 59, 59, 999);
+              } else {
+                  periodStart.setMonth(now.getMonth() - i);
+                  periodStart.setDate(1);
+                  periodStart.setHours(0, 0, 0, 0);
+                  periodEnd.setMonth(now.getMonth() - i + 1);
+                  periodEnd.setDate(0);
+                  periodEnd.setHours(23, 59, 59, 999);
+              }
+
+              // Filter transactions for this period
+              const periodTransactions = transactions.filter(t => {
+                  const txnDate = new Date(t.date);
+                  return txnDate >= periodStart && txnDate <= periodEnd;
+              });
+
+              // Calculate income and expenses
+              // In Plaid: positive amount = expense (money out), negative amount = income (money in)
+              let income = 0;
+              let expense = 0;
+
+              periodTransactions.forEach(t => {
+                  if (t.amount < 0) {
+                      // Negative amount = income (deposit/credit)
+                      income += Math.abs(t.amount);
+                  } else {
+                      // Positive amount = expense (debit/withdrawal)
+                      expense += t.amount;
+                  }
+              });
+
+              const savings = income - expense;
+              const rate = income > 0 ? (savings / income) * 100 : 0;
+
+              data.push({
+                  month: periodStart.toLocaleDateString('en-US', { month: 'short', day: isDaily ? 'numeric' : undefined }),
+                  Income: Math.round(income),
+                  Expenses: Math.round(expense),
+                  Savings: Math.round(savings),
+                  SavingsRate: Math.round(rate)
+              });
           }
+      } else {
+          // Fallback to manual data when no Plaid transactions
+          const baseIncome = isDaily ? settings.monthlyIncome / 30 : settings.monthlyIncome;
+          const baseExpense = isDaily
+            ? (bills.reduce((s,b) => s + b.amount, 0) + cards.reduce((s,c) => s + c.minimumPayment, 0) + loans.reduce((s,l) => s + l.monthlyPayment, 0)) / 30
+            : (bills.reduce((s,b) => s + b.amount, 0) + cards.reduce((s,c) => s + c.minimumPayment, 0) + loans.reduce((s,l) => s + l.monthlyPayment, 0));
 
-          const variance = isDaily ? 0.5 : 0.1; // Higher variance daily
-          const income = baseIncome + (Math.random() * (baseIncome * variance * 2) - (baseIncome * variance)); 
-          const expense = baseExpense + (Math.random() * (baseExpense * variance * 2) - (baseExpense * variance)); 
-          const savings = income - expense;
-          const rate = income > 0 ? (savings / income) * 100 : 0;
-          
-          data.push({
-              month: date.toLocaleDateString('en-US', { month: 'short', day: isDaily ? 'numeric' : undefined }),
-              Income: Math.round(income),
-              Expenses: Math.round(expense),
-              Savings: Math.round(savings),
-              SavingsRate: Math.round(rate)
-          });
+          for(let i = points - 1; i >= 0; i--) {
+              const date = new Date(now);
+              if (isDaily) {
+                  date.setDate(date.getDate() - i);
+              } else {
+                  date.setMonth(date.getMonth() - i);
+              }
+
+              const variance = isDaily ? 0.5 : 0.1;
+              const income = baseIncome + (Math.random() * (baseIncome * variance * 2) - (baseIncome * variance));
+              const expense = baseExpense + (Math.random() * (baseExpense * variance * 2) - (baseExpense * variance));
+              const savings = income - expense;
+              const rate = income > 0 ? (savings / income) * 100 : 0;
+
+              data.push({
+                  month: date.toLocaleDateString('en-US', { month: 'short', day: isDaily ? 'numeric' : undefined }),
+                  Income: Math.round(income),
+                  Expenses: Math.round(expense),
+                  Savings: Math.round(savings),
+                  SavingsRate: Math.round(rate)
+              });
+          }
       }
+
       return data;
-  }, [settings, bills, cards, loans, timeRange]);
+  }, [transactions, settings, bills, cards, loans, timeRange]);
 
   // 3. Category Breakdown (Pie)
   const categoryData = useMemo(() => {

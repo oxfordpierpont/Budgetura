@@ -1,5 +1,5 @@
 import { supabase } from './client';
-import { CreditCard, Loan, Mortgage, Bill, Goal, PlaidAccount, PlaidItem } from '../../types';
+import { CreditCard, Loan, Mortgage, Bill, Goal, PlaidAccount, PlaidItem, PlaidTransaction } from '../../types';
 
 // ============================================================================
 // CREDIT CARDS
@@ -599,4 +599,54 @@ export const deletePlaidItem = async (itemId: string) => {
     .eq('item_id', itemId);
 
   if (error) throw error;
+};
+
+/**
+ * Sync Plaid transactions from backend
+ */
+export const syncPlaidTransactions = async (userId: string) => {
+  const plaidBackendUrl = import.meta.env.VITE_PLAID_BACKEND_URL || 'http://localhost:3001';
+
+  const response = await fetch(`${plaidBackendUrl}/api/plaid/sync-transactions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to sync transactions');
+  }
+
+  return await response.json();
+};
+
+/**
+ * Get Plaid transactions for a user
+ */
+export const getPlaidTransactions = async (
+  userId: string,
+  options?: { startDate?: string; endDate?: string; limit?: number }
+): Promise<PlaidTransaction[]> => {
+  const plaidBackendUrl = import.meta.env.VITE_PLAID_BACKEND_URL || 'http://localhost:3001';
+
+  const params = new URLSearchParams();
+  if (options?.startDate) params.append('startDate', options.startDate);
+  if (options?.endDate) params.append('endDate', options.endDate);
+  if (options?.limit) params.append('limit', options.limit.toString());
+
+  const queryString = params.toString();
+  const url = `${plaidBackendUrl}/api/plaid/transactions/${userId}${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch transactions');
+  }
+
+  const result = await response.json();
+  return result.transactions || [];
 };
