@@ -45,15 +45,15 @@ const CustomTooltip = ({ active, payload, label, formatter }: any) => {
 export default function ReportsView() {
   const [currentReport, setCurrentReport] = useState<ReportType>('overview');
   const [timeRange, setTimeRange] = useState<TimeRange>('year');
-  const { settings, cards, loans, bills, accounts, transactions, setAIChatState } = useDebt();
+  const { settings, cards, loans, mortgages, bills, accounts, transactions, setAIChatState } = useDebt();
 
   // --- Dynamic Data Generators ---
   
-  // 1. Net Worth History (Updated to include Implied Assets)
+  // 1. Net Worth History (Real asset and liability tracking)
   const netWorthData = useMemo(() => {
       let points = 12;
       let isDaily = false;
-      
+
       switch(timeRange) {
           case 'week': points = 7; isDaily = true; break;
           case 'month': points = 30; isDaily = true; break;
@@ -64,21 +64,37 @@ export default function ReportsView() {
 
       const data = [];
       const now = new Date();
-      
-      // Calculate Real Assets (Cash)
-      const cashAssets = accounts.reduce((s, a) => s + (a.available_balance || a.current_balance), 0);
-      
-      // Calculate Implied Assets (Property/Vehicle Value Proxy using Original Principal of secured loans)
-      const impliedAssets = loans.reduce((sum, loan) => {
-          if (['Mortgage', 'Auto', 'Home Equity'].includes(loan.type)) {
-              return sum + loan.originalPrincipal;
+
+      // Calculate ASSETS
+      // 1. Cash from bank accounts
+      const cashAssets = accounts.reduce((s, a) => s + (a.available_balance || a.current_balance || 0), 0);
+
+      // 2. Property values from mortgages
+      const propertyAssets = mortgages.reduce((s, m) => s + (m.propertyValue || 0), 0);
+
+      // 3. Vehicle values from auto loans (use 70% of original as depreciated value)
+      const vehicleAssets = loans.reduce((sum, loan) => {
+          if (loan.type === 'Auto' && loan.originalPrincipal) {
+              // Assume 30% depreciation for simplicity
+              return sum + (loan.originalPrincipal * 0.7);
           }
           return sum;
       }, 0);
 
-      const currentTotalAssets = cashAssets + impliedAssets;
-      const currentLiabilities = cards.reduce((s,c) => s + c.balance, 0) + loans.reduce((s,l) => s + l.currentBalance, 0);
-      
+      const currentTotalAssets = cashAssets + propertyAssets + vehicleAssets;
+
+      // Calculate LIABILITIES
+      // 1. Credit card balances
+      const creditCardDebt = cards.reduce((s, c) => s + c.balance, 0);
+
+      // 2. Loan balances
+      const loanDebt = loans.reduce((s, l) => s + l.currentBalance, 0);
+
+      // 3. Mortgage balances
+      const mortgageDebt = mortgages.reduce((s, m) => s + m.currentBalance, 0);
+
+      const currentLiabilities = creditCardDebt + loanDebt + mortgageDebt;
+
       for(let i = points - 1; i >= 0; i--) {
           const date = new Date(now);
           if (isDaily) {
@@ -88,18 +104,18 @@ export default function ReportsView() {
               date.setDate(1); // First of month for consistency
           }
 
-          // Simulate fluctuations
-          // Assets tend to grow slowly (appreciation + savings)
-          const multiplierAsset = isDaily ? (i * 0.0005) : (i * 0.005); 
+          // Simulate historical fluctuations
+          // Assets tend to grow slowly (property appreciation + savings)
+          const multiplierAsset = isDaily ? (i * 0.0005) : (i * 0.005);
           // Liabilities decrease as we go back in time (meaning they were higher in the past)
           const multiplierLiab = isDaily ? (i * 0.001) : (i * 0.01);
 
-          // We are looking back 'i' periods ago. 
+          // We are looking back 'i' periods ago.
           // Past Assets = Current * (1 - growth)
-          const mockAsset = currentTotalAssets * (1 - multiplierAsset); 
+          const mockAsset = currentTotalAssets * (1 - multiplierAsset);
           // Past Liabilities = Current * (1 + paydown)
-          const mockLiab = currentLiabilities * (1 + multiplierLiab); 
-          
+          const mockLiab = currentLiabilities * (1 + multiplierLiab);
+
           data.push({
               month: date.toLocaleDateString('en-US', { month: 'short', day: isDaily ? 'numeric' : undefined }),
               Assets: Math.round(mockAsset),
@@ -108,7 +124,7 @@ export default function ReportsView() {
           });
       }
       return data;
-  }, [accounts, cards, loans, timeRange]);
+  }, [accounts, cards, loans, mortgages, timeRange]);
 
   // 2. Income vs Expenses (using real Plaid transaction data)
   const incomeExpenseData = useMemo(() => {
