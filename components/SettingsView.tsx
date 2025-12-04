@@ -778,7 +778,7 @@ const SettingsView = () => {
         </section>
 
         {/* Plaid Integration (Admin Only) */}
-        {user?.user_metadata?.role === 'admin' || user?.raw_app_meta_data?.role === 'admin' ? (
+        {user?.user_metadata?.role === 'admin' || user?.app_metadata?.role === 'admin' ? (
           <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 border-b border-gray-100 flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
