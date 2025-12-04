@@ -407,15 +407,138 @@ export const createSnapshot = async (userId: string, snapshot: Partial<any>) => 
 // ============================================================================
 
 export const updateUserSettings = async (userId: string, settings: Partial<any>) => {
+  const updateData: any = { id: userId };
+
+  // Map frontend field names to database column names
+  if (settings.monthlyIncome !== undefined) updateData.monthly_income = settings.monthlyIncome;
+  if (settings.payoffStrategy !== undefined) updateData.payoff_strategy = settings.payoffStrategy;
+  if (settings.currencySymbol !== undefined) updateData.currency_symbol = settings.currencySymbol;
+  if (settings.defaultInterestRate !== undefined) updateData.default_interest_rate = settings.defaultInterestRate;
+  if (settings.snapshotFrequency !== undefined) updateData.snapshot_frequency = settings.snapshotFrequency;
+  if (settings.emailNotifications !== undefined) updateData.email_notifications = settings.emailNotifications;
+
   const { data, error } = await supabase
     .from('user_profiles')
-    .upsert({
-      id: userId,
-      monthly_income: settings.monthlyIncome,
-      default_payoff_strategy: settings.payoffStrategy,
-    }, { onConflict: 'id' })
+    .upsert(updateData, { onConflict: 'id' })
     .select()
     .single();
+
+  if (error) throw error;
+  return data;
+};
+
+// ============================================================================
+// AI SETTINGS
+// ============================================================================
+
+export const getAISettings = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('ai_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    // If no settings exist, return null (not an error)
+    if (error.code === 'PGRST116') return null;
+    throw error;
+  }
+
+  // Return settings without the encrypted API key
+  return {
+    id: data.id,
+    provider: data.provider,
+    model: data.model,
+    customModelId: data.custom_model_id,
+    temperature: parseFloat(data.temperature),
+    maxTokens: data.max_tokens,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+};
+
+export const saveAISettings = async (userId: string, settings: any) => {
+  // Call the database function that handles encryption
+  const { data, error } = await supabase.rpc('save_ai_settings_encrypted', {
+    p_user_id: userId,
+    p_provider: settings.provider,
+    p_api_key: settings.apiKey,
+    p_model: settings.model,
+    p_custom_model_id: settings.customModelId || null,
+    p_temperature: settings.temperature,
+    p_max_tokens: settings.maxTokens,
+  });
+
+  if (error) throw error;
+  return data;
+};
+
+export const testAPIKey = async (provider: string, apiKey: string): Promise<boolean> => {
+  // This is a placeholder function
+  // In production, this should call an Edge Function to securely test the key
+  // without exposing it to the client
+
+  try {
+    // For now, just validate the key format
+    if (!apiKey || apiKey.length < 20) {
+      return false;
+    }
+
+    // Basic format validation based on provider
+    if (provider === 'openai' && !apiKey.startsWith('sk-')) {
+      return false;
+    }
+    if (provider === 'anthropic' && !apiKey.startsWith('sk-ant-')) {
+      return false;
+    }
+
+    // TODO: Implement actual API key validation via Edge Function
+    // For now, return true if format is correct
+    return true;
+  } catch (error) {
+    console.error('API key test error:', error);
+    return false;
+  }
+};
+
+// ============================================================================
+// PLAID CONFIGURATION (Admin Only)
+// ============================================================================
+
+export const getPlaidConfig = async () => {
+  // This uses service_role permissions
+  const { data, error } = await supabase
+    .from('plaid_config')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error) {
+    // If no config exists, return null (not an error)
+    if (error.code === 'PGRST116') return null;
+    throw error;
+  }
+
+  // Return config without encrypted values (they're encrypted in DB)
+  return {
+    id: data.id,
+    environment: data.environment,
+    isActive: data.is_active,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+};
+
+export const savePlaidConfig = async (config: any, userId: string) => {
+  // Call the database function that handles encryption
+  const { data, error } = await supabase.rpc('save_plaid_config_encrypted', {
+    p_client_id: config.clientId,
+    p_secret: config.secret,
+    p_environment: config.environment,
+    p_created_by: userId,
+  });
 
   if (error) throw error;
   return data;

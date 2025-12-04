@@ -270,6 +270,34 @@ export interface UserSettings {
   monthlyIncome: number;
   currencySymbol: string;
   payoffStrategy: 'avalanche' | 'snowball' | 'custom';
+  defaultInterestRate: number;
+  snapshotFrequency: 'weekly' | 'monthly' | 'quarterly';
+  emailNotifications: boolean;
+}
+
+// AI Settings Types
+export interface AISettings {
+  id?: string;
+  provider: 'openrouter' | 'openai' | 'anthropic';
+  apiKey?: string; // Only used during save, never stored in state
+  model: string;
+  customModelId?: string;
+  temperature: number;
+  maxTokens: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Plaid Configuration Types (Admin only)
+export interface PlaidConfig {
+  id?: string;
+  clientId: string;
+  secret: string;
+  environment: 'sandbox' | 'development' | 'production';
+  isActive: boolean;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Plaid Integration Types

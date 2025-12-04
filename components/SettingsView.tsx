@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 
 const SettingsView = () => {
   const { user, updatePassword } = useAuth();
-  const { refetch } = useDebt();
+  const { settings, updateSettings, aiSettings, saveAISettings, refetchAISettings, refetch } = useDebt();
   const { subscription, invoices, loading: stripeLoading, createCheckoutSession, openCustomerPortal } = useStripe();
   const [generating, setGenerating] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -37,6 +37,27 @@ const SettingsView = () => {
   // Avatar file state
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
+  // General Configuration state
+  const [currencySymbol, setCurrencySymbol] = useState('$');
+  const [defaultInterestRate, setDefaultInterestRate] = useState(18.0);
+  const [payoffStrategy, setPayoffStrategy] = useState<'avalanche' | 'snowball' | 'custom'>('avalanche');
+  const [snapshotFrequency, setSnapshotFrequency] = useState<'weekly' | 'monthly' | 'quarterly'>('monthly');
+  const [emailNotifications, setEmailNotifications] = useState(true);
+
+  // AI Settings state
+  const [aiProvider, setAIProvider] = useState<'openrouter' | 'openai' | 'anthropic'>('openrouter');
+  const [aiApiKey, setAIApiKey] = useState('');
+  const [aiModel, setAIModel] = useState('gpt-4o');
+  const [aiTemperature, setAITemperature] = useState(0.7);
+  const [aiMaxTokens, setAIMaxTokens] = useState(2000);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Plaid Configuration state (Admin only)
+  const [plaidEnvironment, setPlaidEnvironment] = useState<'sandbox' | 'development' | 'production'>('sandbox');
+  const [plaidClientId, setPlaidClientId] = useState('');
+  const [plaidSecret, setPlaidSecret] = useState('');
+  const [savingPlaid, setSavingPlaid] = useState(false);
+
   // Load user data when component mounts
   React.useEffect(() => {
     if (user) {
@@ -46,6 +67,29 @@ const SettingsView = () => {
       setAvatarUrl(user.user_metadata?.avatar_url || '');
     }
   }, [user]);
+
+  // Load settings from context
+  React.useEffect(() => {
+    if (settings) {
+      setCurrencySymbol(settings.currencySymbol || '$');
+      setDefaultInterestRate(settings.defaultInterestRate || 18.0);
+      setPayoffStrategy(settings.payoffStrategy || 'avalanche');
+      setSnapshotFrequency(settings.snapshotFrequency || 'monthly');
+      setEmailNotifications(settings.emailNotifications ?? true);
+    }
+  }, [settings]);
+
+  // Load AI settings from context
+  React.useEffect(() => {
+    if (aiSettings) {
+      setAIProvider(aiSettings.provider);
+      setAIModel(aiSettings.model);
+      setAITemperature(aiSettings.temperature);
+      setAIMaxTokens(aiSettings.maxTokens);
+      // Don't load API key - it's encrypted in backend
+      setAIApiKey('');
+    }
+  }, [aiSettings]);
 
   const handleAvatarClick = () => {
     const input = document.createElement('input');
@@ -208,6 +252,109 @@ const SettingsView = () => {
     } catch (error: any) {
       console.error('Error updating email:', error);
       toast.error(error.message || 'Failed to update email');
+    }
+  };
+
+  const handleSaveGeneralSettings = async () => {
+    try {
+      setSavingSettings(true);
+      await updateSettings({
+        currencySymbol,
+        defaultInterestRate,
+        payoffStrategy,
+        snapshotFrequency,
+        emailNotifications,
+      });
+      toast.success('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Failed to save settings');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleSaveAISettings = async () => {
+    try {
+      // Validate API key if provided
+      if (!aiApiKey && !aiSettings) {
+        toast.error('Please enter an API key');
+        return;
+      }
+
+      setSavingSettings(true);
+
+      await saveAISettings({
+        provider: aiProvider,
+        apiKey: aiApiKey, // Only send if user entered a new one
+        model: aiModel,
+        temperature: aiTemperature,
+        maxTokens: aiMaxTokens,
+      });
+
+      toast.success('AI settings saved successfully!');
+      setAIApiKey(''); // Clear the input after save
+      await refetchAISettings(); // Reload settings
+    } catch (error) {
+      console.error('Error saving AI settings:', error);
+      toast.error('Failed to save AI settings');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleSavePlaidConfig = async () => {
+    if (!user) return;
+
+    try {
+      if (!plaidClientId || !plaidSecret) {
+        toast.error('Please enter both Client ID and Secret');
+        return;
+      }
+
+      setSavingPlaid(true);
+
+      // Import the savePlaidConfig operation
+      const { savePlaidConfig } = await import('../src/lib/supabase/operations');
+
+      await savePlaidConfig({
+        clientId: plaidClientId,
+        secret: plaidSecret,
+        environment: plaidEnvironment,
+      }, user.id);
+
+      toast.success('Plaid configuration saved successfully!');
+      setPlaidClientId('');
+      setPlaidSecret('');
+    } catch (error) {
+      console.error('Error saving Plaid config:', error);
+      toast.error('Failed to save Plaid configuration');
+    } finally {
+      setSavingPlaid(false);
+    }
+  };
+
+  const handleGoogleOAuth = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/settings`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // The redirect will happen automatically if successful
+    } catch (error: any) {
+      console.error('Error with Google OAuth:', error);
+      toast.error(error.message || 'Failed to connect Google account');
     }
   };
 
@@ -398,9 +545,12 @@ const SettingsView = () => {
                 </div>
 
                 <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
-                     <button className="flex items-center gap-2 text-gray-600 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-all">
+                     <button
+                       onClick={handleGoogleOAuth}
+                       className="flex items-center gap-2 text-gray-600 bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-all"
+                     >
                         <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                        Sign in with Google
+                        {user?.app_metadata?.provider === 'google' ? 'Google Account Connected' : 'Connect Google Account'}
                      </button>
                      <button
                        onClick={handleSaveProfile}
@@ -428,18 +578,34 @@ const SettingsView = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Currency Symbol</label>
-                <input type="text" defaultValue="$" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+                <input
+                  type="text"
+                  value={currencySymbol}
+                  onChange={(e) => setCurrencySymbol(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Default Interest Rate (%)</label>
-                <input type="number" defaultValue="18.0" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+                <input
+                  type="number"
+                  step="0.01"
+                  value={defaultInterestRate}
+                  onChange={(e) => setDefaultInterestRate(parseFloat(e.target.value) || 0)}
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Payoff Strategy</label>
                 <div className="relative">
-                    <select className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none transition-all">
-                    <option value="avalanche">Avalanche (Highest Interest First)</option>
-                    <option value="snowball">Snowball (Lowest Balance First)</option>
+                    <select
+                      value={payoffStrategy}
+                      onChange={(e) => setPayoffStrategy(e.target.value as 'avalanche' | 'snowball' | 'custom')}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none transition-all"
+                    >
+                      <option value="avalanche">Avalanche (Highest Interest First)</option>
+                      <option value="snowball">Snowball (Lowest Balance First)</option>
+                      <option value="custom">Custom</option>
                     </select>
                     <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
@@ -447,10 +613,14 @@ const SettingsView = () => {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Snapshot Frequency</label>
                 <div className="relative">
-                    <select className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none transition-all">
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="quarterly">Quarterly</option>
+                    <select
+                      value={snapshotFrequency}
+                      onChange={(e) => setSnapshotFrequency(e.target.value as 'weekly' | 'monthly' | 'quarterly')}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none transition-all"
+                    >
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="quarterly">Quarterly</option>
                     </select>
                      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
@@ -459,13 +629,24 @@ const SettingsView = () => {
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <div className="flex items-center gap-3">
                  <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                    <input type="checkbox" name="toggle" id="toggle" className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-indigo-500 right-0"/>
-                    <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-indigo-500 cursor-pointer"></label>
+                    <input
+                      type="checkbox"
+                      name="emailToggle"
+                      id="emailToggle"
+                      checked={emailNotifications}
+                      onChange={(e) => setEmailNotifications(e.target.checked)}
+                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-indigo-500 right-0"
+                    />
+                    <label htmlFor="emailToggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-indigo-500 cursor-pointer"></label>
                 </div>
-                 <label htmlFor="toggle" className="text-sm text-gray-700 font-medium">Enable Email Notifications</label>
+                 <label htmlFor="emailToggle" className="text-sm text-gray-700 font-medium">Enable Email Notifications</label>
               </div>
-              <button className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95">
-                 <Save size={16} /> Save Changes
+              <button
+                onClick={handleSaveGeneralSettings}
+                disabled={savingSettings}
+                className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                 <Save size={16} /> {savingSettings ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -487,7 +668,11 @@ const SettingsView = () => {
                <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">AI Provider</label>
                    <div className="relative">
-                      <select className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none appearance-none transition-all">
+                      <select
+                        value={aiProvider}
+                        onChange={(e) => setAIProvider(e.target.value as 'openrouter' | 'openai' | 'anthropic')}
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none appearance-none transition-all"
+                      >
                         <option value="openrouter">OpenRouter (Recommended)</option>
                         <option value="openai">OpenAI</option>
                         <option value="anthropic">Anthropic</option>
@@ -496,17 +681,30 @@ const SettingsView = () => {
                    </div>
                </div>
                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">API Key</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                    API Key {aiSettings && <span className="text-green-600 text-xs ml-2">(Configured)</span>}
+                  </label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="password" placeholder="sk-..." className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+                    <input
+                      type="password"
+                      value={aiApiKey}
+                      onChange={(e) => setAIApiKey(e.target.value)}
+                      placeholder={aiSettings ? "Enter new key to update" : "sk-..."}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                    />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">Leave blank to keep existing key</p>
                </div>
 
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Model Selection</label>
                   <div className="relative">
-                      <select className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none appearance-none transition-all">
+                      <select
+                        value={aiModel}
+                        onChange={(e) => setAIModel(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none appearance-none transition-all"
+                      >
                         <option value="gpt-4o">GPT-4o</option>
                         <option value="claude-3-sonnet">Claude 3.5 Sonnet</option>
                         <option value="minimax">Minimax M2</option>
@@ -517,15 +715,30 @@ const SettingsView = () => {
                </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Custom Model ID</label>
-                  <input type="text" placeholder="e.g. anthropic/claude-2" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+                  <input
+                    type="text"
+                    value={aiSettings?.customModelId || ''}
+                    onChange={(e) => setAIModel(e.target.value)}
+                    placeholder="e.g. anthropic/claude-2"
+                    disabled={aiModel !== 'custom'}
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                  />
                </div>
 
                <div>
                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex justify-between">
                        <span>Temperature</span>
-                       <span className="text-purple-600">0.7</span>
+                       <span className="text-purple-600">{aiTemperature.toFixed(1)}</span>
                    </label>
-                   <input type="range" min="0" max="1" step="0.1" defaultValue="0.7" className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" />
+                   <input
+                     type="range"
+                     min="0"
+                     max="1"
+                     step="0.1"
+                     value={aiTemperature}
+                     onChange={(e) => setAITemperature(parseFloat(e.target.value))}
+                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                   />
                    <div className="flex justify-between text-[10px] text-gray-400 mt-2 font-medium">
                        <span>Precise</span>
                        <span>Balanced</span>
@@ -534,7 +747,14 @@ const SettingsView = () => {
                </div>
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Max Tokens</label>
-                  <input type="number" defaultValue="2000" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+                  <input
+                    type="number"
+                    value={aiMaxTokens}
+                    onChange={(e) => setAIMaxTokens(parseInt(e.target.value) || 2000)}
+                    min="100"
+                    max="128000"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                  />
                </div>
             </div>
 
@@ -546,12 +766,95 @@ const SettingsView = () => {
             </div>
 
             <div className="flex justify-end pt-2">
-              <button className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-purple-500/20 hover:bg-purple-700 transition-all active:scale-95">
-                 <Save size={16} /> Save AI Settings
+              <button
+                onClick={handleSaveAISettings}
+                disabled={savingSettings}
+                className="flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-purple-500/20 hover:bg-purple-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                 <Save size={16} /> {savingSettings ? 'Saving...' : 'Save AI Settings'}
               </button>
             </div>
           </div>
         </section>
+
+        {/* Plaid Integration (Admin Only) */}
+        {user?.user_metadata?.role === 'admin' || user?.raw_app_meta_data?.role === 'admin' ? (
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                <Shield size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Plaid Integration</h3>
+                <p className="text-sm text-gray-500">Configure Plaid API credentials (Admin Only)</p>
+              </div>
+            </div>
+            <div className="p-6 md:p-8 space-y-6">
+              <div className="bg-amber-50 p-4 rounded-xl flex items-start gap-3 border border-amber-200">
+                <AlertTriangle size={18} className="text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-900 leading-relaxed">
+                  <strong>Admin Only:</strong> These settings control Plaid integration for all users. Credentials are encrypted at rest.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Environment</label>
+                  <div className="relative">
+                    <select
+                      value={plaidEnvironment}
+                      onChange={(e) => setPlaidEnvironment(e.target.value as 'sandbox' | 'development' | 'production')}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-all"
+                    >
+                      <option value="sandbox">Sandbox (Testing)</option>
+                      <option value="development">Development</option>
+                      <option value="production">Production</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Client ID</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="password"
+                      value={plaidClientId}
+                      onChange={(e) => setPlaidClientId(e.target.value)}
+                      placeholder="Enter Plaid Client ID"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Secret Key</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="password"
+                      value={plaidSecret}
+                      onChange={(e) => setPlaidSecret(e.target.value)}
+                      placeholder="Enter Plaid Secret"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={handleSavePlaidConfig}
+                  disabled={savingPlaid}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save size={16} /> {savingPlaid ? 'Saving...' : 'Save Plaid Configuration'}
+                </button>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* Billing & Subscription Section */}
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">

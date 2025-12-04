@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage, PlaidAccount, PlaidTransaction } from '../types';
+import { CreditCard, Loan, Bill, Goal, Snapshot, UserSettings, Mortgage, PlaidAccount, PlaidTransaction, AISettings } from '../types';
 import { useSupabaseData } from '../src/hooks/useSupabaseData';
 import { useAuth } from '../src/hooks/useAuth';
 import * as ops from '../src/lib/supabase/operations';
@@ -18,6 +18,7 @@ interface DebtContextType {
   goals: Goal[];
   snapshots: Snapshot[];
   settings: UserSettings;
+  aiSettings: AISettings | null;
   accounts: PlaidAccount[];
   transactions: PlaidTransaction[];
   aiChatState: AIChatState;
@@ -42,6 +43,8 @@ interface DebtContextType {
   deleteGoal: (id: string) => Promise<void>;
   createSnapshot: () => Promise<void>;
   updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
+  saveAISettings: (settings: AISettings) => Promise<void>;
+  refetchAISettings: () => Promise<void>;
 }
 
 const DebtContext = createContext<DebtContextType | undefined>(undefined);
@@ -50,6 +53,7 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { user } = useAuth();
   const { cards, loans, mortgages, bills, goals, snapshots, settings, loading, refetch } = useSupabaseData();
   const [aiChatState, setAIChatState] = useState<AIChatState>({ isOpen: false });
+  const [aiSettings, setAISettings] = useState<AISettings | null>(null);
   const [accounts, setAccounts] = useState<PlaidAccount[]>([]);
   const [transactions, setTransactions] = useState<PlaidTransaction[]>([]);
 
@@ -89,6 +93,24 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
     fetchTransactions();
+  }, [user]);
+
+  // Fetch AI settings
+  useEffect(() => {
+    const fetchAISettings = async () => {
+      if (!user) {
+        setAISettings(null);
+        return;
+      }
+      try {
+        const data = await ops.getAISettings(user.id);
+        setAISettings(data);
+      } catch (error) {
+        console.error('Error fetching AI settings:', error);
+        setAISettings(null);
+      }
+    };
+    fetchAISettings();
   }, [user]);
 
   // Sync transactions from Plaid
@@ -225,6 +247,27 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await refetch();
   };
 
+  // AI Settings
+  const saveAISettings = async (settings: AISettings) => {
+    if (!user) return;
+    await ops.saveAISettings(user.id, settings);
+    await refetchAISettings();
+  };
+
+  const refetchAISettings = async () => {
+    if (!user) {
+      setAISettings(null);
+      return;
+    }
+    try {
+      const data = await ops.getAISettings(user.id);
+      setAISettings(data);
+    } catch (error) {
+      console.error('Error fetching AI settings:', error);
+      setAISettings(null);
+    }
+  };
+
   return (
     <DebtContext.Provider value={{
       cards,
@@ -234,6 +277,7 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       goals,
       snapshots,
       settings,
+      aiSettings,
       accounts,
       transactions,
       aiChatState,
@@ -257,7 +301,9 @@ export const DebtProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       updateGoal,
       deleteGoal,
       createSnapshot,
-      updateSettings
+      updateSettings,
+      saveAISettings,
+      refetchAISettings
     }}>
       {children}
     </DebtContext.Provider>
