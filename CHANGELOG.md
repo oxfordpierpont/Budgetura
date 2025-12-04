@@ -5,6 +5,67 @@ All notable changes to Budgetura will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-12-04
+
+### Added
+- **Complete Stripe Subscription Billing Integration** - Full payment processing system
+  - **Backend Edge Functions**:
+    - `create-checkout-session` - Initiates Stripe checkout for subscriptions
+    - `create-customer-portal` - Opens Stripe customer portal for management
+    - `stripe-webhooks` - Processes Stripe events (payments, cancellations, updates)
+  - **Database Schema**:
+    - `subscriptions` table with RLS policies for storing user subscription data
+    - `invoices` table with RLS policies for billing history
+    - Helper SQL functions for subscription queries
+    - Complete migration file: `002_stripe_billing.sql`
+  - **Frontend Integration**:
+    - `StripeContext` - Global state management for subscriptions and invoices
+    - `StripeProvider` - React context provider wrapping the entire app
+    - Dynamic billing UI in Settings page with real Stripe data
+    - Loading states, error handling, and proper type safety
+  - **4 Subscription Tiers**:
+    - Free Plan ($0/month) - Manual tracking, 1 goal, basic reports
+    - Basic Plan ($9/month) - Bank syncing (3 accounts), 5 goals, debt projections
+    - Plus Plan ($19/month) - Unlimited accounts, AI coach, advanced analytics
+    - Premium Plan ($29/month) - All Plus features, live coaching, priority support
+  - **Features**:
+    - Secure Stripe Checkout integration
+    - Stripe Customer Portal for self-service subscription management
+    - Automatic recurring billing
+    - Invoice generation with PDF downloads
+    - Real-time subscription status updates (active, trial, past_due)
+    - Payment method management
+    - Subscription upgrade/downgrade flows
+    - Cancellation handling
+    - Billing history table with invoice records
+  - **Documentation**:
+    - `STRIPE_INTEGRATION_PLAN.md` - Complete technical implementation guide
+    - `STRIPE_SETUP_GUIDE.md` - Quick start setup instructions (15 minutes)
+  - **Security**:
+    - Row Level Security (RLS) on all billing tables
+    - Webhook signature verification
+    - User authorization on all endpoints
+    - Secret keys never exposed to frontend
+
+### Technical Details
+- Test mode ready - configured for Stripe test cards (4242 4242 4242 4242)
+- Production-ready - just swap test keys for live keys when ready
+- Webhook event handling: subscription.created/updated/deleted, invoice.paid/failed
+- Automatic database sync via webhooks
+- Proper error handling and user feedback via toasts
+- Added `@stripe/stripe-js` package dependency
+- Full TypeScript type safety throughout
+
+### Developer Setup Required
+1. Run database migration: `002_stripe_billing.sql`
+2. Deploy Edge Functions to Supabase
+3. Create Stripe products and get price IDs
+4. Configure webhook endpoint in Stripe Dashboard
+5. Set environment variables (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, etc.)
+6. See `STRIPE_SETUP_GUIDE.md` for complete setup instructions
+
+---
+
 ## [2.5.0] - 2025-12-04
 
 ### Added
@@ -279,6 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **2.6.0** - Complete Stripe subscription billing integration
 - **2.5.0** - Billing & Subscription section in Settings
 - **2.4.1** - Navigation and deployment fixes
 - **2.4.0** - Mortgage dummy data integration
@@ -293,6 +355,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[2.6.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/oxfordpierpont/Budgetura/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/oxfordpierpont/Budgetura/compare/v2.3.0...v2.4.0
