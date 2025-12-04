@@ -24,7 +24,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
 // Stripe Price IDs for test mode
 // Replace these with your actual Stripe test price IDs after creating products
 const PRICE_IDS = {
-  basic: Deno.env.get('STRIPE_PRICE_BASIC') || 'price_1ABC123basic',
   plus: Deno.env.get('STRIPE_PRICE_PLUS') || 'price_1DEF456plus',
   premium: Deno.env.get('STRIPE_PRICE_PREMIUM') || 'price_1GHI789premium',
 };
@@ -46,8 +45,8 @@ serve(async (req) => {
       throw new Error('Missing required parameters: priceId and planId');
     }
 
-    if (!['basic', 'plus', 'premium'].includes(planId)) {
-      throw new Error('Invalid plan_id. Must be: basic, plus, or premium');
+    if (!['plus', 'premium'].includes(planId)) {
+      throw new Error('Invalid plan_id. Must be: plus or premium');
     }
 
     // Get user from auth header

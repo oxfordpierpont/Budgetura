@@ -9,7 +9,7 @@
 ## Overview
 
 This document outlines the complete implementation plan for integrating Stripe payment processing with the Budgetura billing section. The integration will enable:
-- Subscription management (Free, Basic, Plus, Premium tiers)
+- Subscription management (Free, Plus, Premium tiers)
 - Secure payment processing
 - Automatic billing and invoicing
 - Customer portal for self-service management
@@ -24,8 +24,7 @@ This document outlines the complete implementation plan for integrating Stripe p
 - [ ] Complete business verification
 - [ ] Set up products and pricing in Stripe Dashboard:
   - **Free Plan**: $0/month (no Stripe subscription needed)
-  - **Basic Plan**: $9/month (price_basic)
-  - **Plus Plan**: $19/month (price_plus)
+  - **Plus Plan**: $9/month (price_plus)
   - **Premium Plan**: $29/month (price_premium)
 - [ ] Get API keys:
   - Test mode: `pk_test_...` and `sk_test_...`
@@ -74,7 +73,7 @@ CREATE TABLE subscriptions (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   stripe_customer_id TEXT UNIQUE NOT NULL,
   stripe_subscription_id TEXT UNIQUE,
-  plan_id TEXT NOT NULL, -- 'free', 'basic', 'plus', 'premium'
+  plan_id TEXT NOT NULL, -- 'free', 'plus', 'premium'
   status TEXT NOT NULL, -- 'active', 'canceled', 'past_due', 'incomplete', 'trialing'
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,
@@ -154,8 +153,8 @@ Create: `supabase/migrations/003_stripe_billing.sql`
 **Request Body**:
 ```json
 {
-  "priceId": "price_basic", // Stripe price ID
-  "planId": "basic" // Our internal plan ID
+  "priceId": "price_plus", // Stripe price ID
+  "planId": "plus" // Our internal plan ID
 }
 ```
 
@@ -591,8 +590,7 @@ const { subscription, invoices, createCheckoutSession, openCustomerPortal } = us
 
 // Plan pricing mapping
 const PLAN_PRICES = {
-  basic: 'price_1ABC123...', // Replace with real Stripe price IDs
-  plus: 'price_1DEF456...',
+  plus: 'price_1DEF456...', // Replace with real Stripe price IDs
   premium: 'price_1GHI789...'
 };
 
@@ -671,9 +669,9 @@ Use Stripe test mode with test cards:
 - **3D Secure**: `4000 0025 0000 3155`
 
 ### 2. Test Scenarios
-- [ ] Create new subscription (Free → Basic)
-- [ ] Upgrade subscription (Basic → Plus)
-- [ ] Downgrade subscription (Plus → Basic)
+- [ ] Create new subscription (Free → Plus)
+- [ ] Upgrade subscription (Plus → Premium)
+- [ ] Downgrade subscription (Premium → Plus)
 - [ ] Cancel subscription
 - [ ] Payment failure handling
 - [ ] Invoice generation

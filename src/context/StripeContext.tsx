@@ -14,7 +14,6 @@ const stripePromise = loadStripe(
 // Stripe Price IDs for each plan (test mode)
 // These should match what you create in your Stripe Dashboard
 export const STRIPE_PRICES = {
-  basic: import.meta.env.VITE_STRIPE_PRICE_BASIC || 'price_test_basic',
   plus: import.meta.env.VITE_STRIPE_PRICE_PLUS || 'price_test_plus',
   premium: import.meta.env.VITE_STRIPE_PRICE_PREMIUM || 'price_test_premium',
 };
@@ -25,7 +24,7 @@ export interface Subscription {
   user_id: string;
   stripe_customer_id: string;
   stripe_subscription_id: string | null;
-  plan_id: 'free' | 'basic' | 'plus' | 'premium';
+  plan_id: 'free' | 'plus' | 'premium';
   status: string;
   current_period_start: string | null;
   current_period_end: string | null;
@@ -148,7 +147,7 @@ export const StripeProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [user]);
 
   // Create Stripe checkout session for new subscription or upgrade
-  const createCheckoutSession = async (planId: 'basic' | 'plus' | 'premium') => {
+  const createCheckoutSession = async (planId: 'plus' | 'premium') => {
     if (!user) {
       toast.error('Please log in to subscribe');
       return;
@@ -264,25 +263,40 @@ export const getPlanDetails = (planId: string) => {
       name: 'Free',
       price: '$0',
       pricePerMonth: 0,
-      features: ['Manual Tracking', '1 Goal', 'Basic Reports'],
-    },
-    basic: {
-      name: 'Basic',
-      price: '$9',
-      pricePerMonth: 9,
-      features: ['Bank Syncing (3 Accts)', '5 Goals', 'Debt Projections'],
+      features: [
+        'Dashboard',
+        'Bills & Expenses',
+        'My Accounts (Plaid)',
+        'Manual Entries (Unlimited)',
+      ],
     },
     plus: {
       name: 'Plus',
-      price: '$19',
-      pricePerMonth: 19,
-      features: ['Unlimited Accounts', 'AI Financial Coach', 'Advanced Analytics'],
+      price: '$9',
+      pricePerMonth: 9,
+      features: [
+        'Everything in Free',
+        'Credit Card Manager',
+        'Loans Manager',
+        'Mortgages Manager',
+        'Debt Action Plan',
+        'Full Plaid Integration',
+      ],
     },
     premium: {
       name: 'Premium',
       price: '$29',
       pricePerMonth: 29,
-      features: ['All Plus Features', 'Live 1:1 Coaching', 'Priority Support'],
+      features: [
+        'Everything in Plus',
+        'Financial Goals',
+        'Progress Tracking',
+        'Reports & Analytics',
+        'Budgetura AI',
+        'Live Debt Coaching',
+        'Priority Support',
+        'Future Updates',
+      ],
     },
   };
 

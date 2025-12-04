@@ -268,7 +268,7 @@ const SettingsView = () => {
   };
 
   // Stripe handlers
-  const handlePlanChange = async (planId: 'free' | 'basic' | 'plus' | 'premium') => {
+  const handlePlanChange = async (planId: 'free' | 'plus' | 'premium') => {
     if (planId === 'free') {
       // Open customer portal to cancel subscription
       await openCustomerPortal();
@@ -618,46 +618,27 @@ const SettingsView = () => {
                         {/* Plan Grid */}
                         <div>
                             <h4 className="font-bold text-gray-900 mb-4">Available Plans</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {/* Free Plan */}
-                                <div className={`border rounded-2xl p-5 hover:border-gray-300 transition-all ${currentPlan === 'free' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-gray-200'}`}>
+                                <div className={`border rounded-2xl p-5 hover:border-gray-300 transition-all relative ${currentPlan === 'free' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-gray-200'}`}>
                                     {currentPlan === 'free' && (
                                         <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
                                     )}
                                     <h5 className="font-bold text-gray-900 text-lg">Free</h5>
                                     <p className="text-2xl font-black text-gray-900 my-2">$0<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                                    <p className="text-xs text-gray-500 mb-4">Essential tracking for casual users.</p>
+                                    <p className="text-xs text-gray-500 mb-4">Essential tools for manual tracking</p>
                                     {currentPlan === 'free' ? (
                                         <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
                                     ) : (
                                         <button onClick={() => handlePlanChange('free')} className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
                                     )}
-                                    <ul className="mt-6 space-y-2">
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Manual Tracking</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> 1 Goal</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Basic Reports</li>
-                                    </ul>
-                                </div>
-
-                                {/* Basic Plan */}
-                                <div className={`border rounded-2xl p-5 hover:border-gray-300 transition-all ${currentPlan === 'basic' ? 'border-2 border-emerald-500 bg-emerald-50/10 shadow-sm' : 'border-gray-200'}`}>
-                                    {currentPlan === 'basic' && (
-                                        <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
-                                    )}
-                                    <h5 className="font-bold text-gray-900 text-lg">Basic</h5>
-                                    <p className="text-2xl font-black text-gray-900 my-2">$9<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                                    <p className="text-xs text-gray-500 mb-4">Automated syncing for starters.</p>
-                                    {currentPlan === 'basic' ? (
-                                        <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
-                                    ) : currentPlanDetails.pricePerMonth > 9 ? (
-                                        <button onClick={() => handlePlanChange('basic')} className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
-                                    ) : (
-                                        <button onClick={() => handlePlanChange('basic')} className="w-full py-2 rounded-lg bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-colors">Upgrade</button>
-                                    )}
-                                    <ul className="mt-6 space-y-2">
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Bank Syncing (3 Accts)</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> 5 Goals</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Debt Projections</li>
+                                    <ul className="mt-6 space-y-2.5">
+                                        {getPlanDetails('free').features.map((feature: string, idx: number) => (
+                                            <li key={idx} className="flex items-start gap-2 text-xs text-gray-600">
+                                                <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                {feature}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
 
@@ -667,19 +648,22 @@ const SettingsView = () => {
                                         <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg uppercase">Current</div>
                                     )}
                                     <h5 className={`font-bold text-lg ${currentPlan === 'plus' ? 'text-emerald-700' : 'text-gray-900'}`}>Plus</h5>
-                                    <p className="text-2xl font-black text-gray-900 my-2">$19<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                                    <p className="text-xs text-gray-500 mb-4">Advanced AI & unlimited tracking.</p>
+                                    <p className="text-2xl font-black text-gray-900 my-2">$9<span className="text-sm font-medium text-gray-400">/mo</span></p>
+                                    <p className="text-xs text-gray-500 mb-4">Full debt management suite</p>
                                     {currentPlan === 'plus' ? (
                                         <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
-                                    ) : currentPlanDetails.pricePerMonth > 19 ? (
+                                    ) : currentPlanDetails.pricePerMonth > 9 ? (
                                         <button onClick={() => handlePlanChange('plus')} className="w-full py-2 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors">Downgrade</button>
                                     ) : (
                                         <button onClick={() => handlePlanChange('plus')} className="w-full py-2 rounded-lg bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20">Upgrade</button>
                                     )}
-                                    <ul className="mt-6 space-y-2">
-                                        <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Unlimited Accounts</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> AI Financial Coach</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-700 font-medium"><Check size={14} className="text-emerald-500 shrink-0 mt-0.5" /> Advanced Analytics</li>
+                                    <ul className="mt-6 space-y-2.5">
+                                        {getPlanDetails('plus').features.map((feature: string, idx: number) => (
+                                            <li key={idx} className={`flex items-start gap-2 text-xs ${currentPlan === 'plus' ? 'text-gray-700 font-medium' : 'text-gray-600'}`}>
+                                                <Check size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                {feature}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
 
@@ -691,16 +675,19 @@ const SettingsView = () => {
                                     <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 opacity-10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
                                     <h5 className="font-bold text-indigo-900 text-lg">Premium</h5>
                                     <p className="text-2xl font-black text-gray-900 my-2">$29<span className="text-sm font-medium text-gray-400">/mo</span></p>
-                                    <p className="text-xs text-gray-500 mb-4">Live coaching & white-glove support.</p>
+                                    <p className="text-xs text-gray-500 mb-4">Everything + AI & live coaching</p>
                                     {currentPlan === 'premium' ? (
                                         <button disabled className="w-full py-2 rounded-lg bg-emerald-100 text-emerald-700 font-bold text-sm cursor-default">Current Plan</button>
                                     ) : (
                                         <button onClick={() => handlePlanChange('premium')} className="w-full py-2 rounded-lg bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20">Upgrade</button>
                                     )}
-                                    <ul className="mt-6 space-y-2">
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> All Plus Features</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> Live 1:1 Coaching</li>
-                                        <li className="flex items-start gap-2 text-xs text-gray-600"><Check size={14} className="text-indigo-500 shrink-0 mt-0.5" /> Priority Support</li>
+                                    <ul className="mt-6 space-y-2.5">
+                                        {getPlanDetails('premium').features.map((feature: string, idx: number) => (
+                                            <li key={idx} className="flex items-start gap-2 text-xs text-gray-600">
+                                                <Check size={14} className="text-indigo-500 shrink-0 mt-0.5" />
+                                                {feature}
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
                             </div>

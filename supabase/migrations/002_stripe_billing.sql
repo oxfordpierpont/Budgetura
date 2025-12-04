@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   stripe_customer_id TEXT UNIQUE NOT NULL,
   stripe_subscription_id TEXT UNIQUE,
-  plan_id TEXT NOT NULL CHECK (plan_id IN ('free', 'basic', 'plus', 'premium')),
+  plan_id TEXT NOT NULL CHECK (plan_id IN ('free', 'plus', 'premium')),
   status TEXT NOT NULL CHECK (status IN ('active', 'canceled', 'past_due', 'incomplete', 'incomplete_expired', 'trialing', 'unpaid')),
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 
 -- Add helpful comment
 COMMENT ON TABLE subscriptions IS 'Stores user subscription data synced from Stripe';
-COMMENT ON COLUMN subscriptions.plan_id IS 'Internal plan identifier: free, basic, plus, premium';
+COMMENT ON COLUMN subscriptions.plan_id IS 'Internal plan identifier: free, plus, premium';
 COMMENT ON COLUMN subscriptions.status IS 'Stripe subscription status';
 COMMENT ON COLUMN subscriptions.stripe_customer_id IS 'Stripe customer ID (cus_...)';
 COMMENT ON COLUMN subscriptions.stripe_subscription_id IS 'Stripe subscription ID (sub_...)';

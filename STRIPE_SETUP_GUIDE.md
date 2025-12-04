@@ -24,25 +24,18 @@ This guide will walk you through setting up Stripe payments for Budgetura in **t
 ### Step 3: Create Products and Prices
 
 1. Go to **Products** → **Add product**
-2. Create 3 products:
+2. Create 2 products:
 
-   **Basic Plan:**
-   - Name: `Basic Plan`
-   - Description: `Automated syncing for starters`
+   **Plus Plan:**
+   - Name: `Plus Plan`
+   - Description: `Full debt management suite`
    - Price: `$9.00` USD
    - Billing: `Recurring` → `Monthly`
    - Copy the **Price ID** (starts with `price_...`)
 
-   **Plus Plan:**
-   - Name: `Plus Plan`
-   - Description: `Advanced AI & unlimited tracking`
-   - Price: `$19.00` USD
-   - Billing: `Recurring` → `Monthly`
-   - Copy the **Price ID**
-
    **Premium Plan:**
    - Name: `Premium Plan`
-   - Description: `Live coaching & white-glove support`
+   - Description: `Everything plus AI & live coaching`
    - Price: `$29.00` USD
    - Billing: `Recurring` → `Monthly`
    - Copy the **Price ID**
@@ -57,7 +50,6 @@ Add these to your Supabase project and Dokploy:
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY_HERE
 
 # Stripe Price IDs
-VITE_STRIPE_PRICE_BASIC=price_YOUR_BASIC_PRICE_ID
 VITE_STRIPE_PRICE_PLUS=price_YOUR_PLUS_PRICE_ID
 VITE_STRIPE_PRICE_PREMIUM=price_YOUR_PREMIUM_PRICE_ID
 ```
@@ -147,7 +139,7 @@ supabase secrets set APP_URL=https://your-app-url.com
 
 1. **Log into Budgetura**
 2. **Go to Settings** → Billing & Subscription
-3. **Click "Upgrade"** on Basic, Plus, or Premium plan
+3. **Click "Upgrade"** on Plus or Premium plan
 4. **You'll be redirected to Stripe Checkout**
 5. **Enter test card info** (4242 4242 4242 4242)
 6. **Complete checkout**
@@ -182,7 +174,7 @@ supabase secrets set APP_URL=https://your-app-url.com
 ### Database Tables
 
 1. **subscriptions** - Stores user subscription data
-   - Current plan (free, basic, plus, premium)
+   - Current plan (free, plus, premium)
    - Stripe customer ID
    - Subscription status
    - Billing dates
@@ -209,7 +201,6 @@ supabase secrets set APP_URL=https://your-app-url.com
 
 ## 🧪 Testing Checklist
 
-- [ ] Basic plan upgrade works
 - [ ] Plus plan upgrade works
 - [ ] Premium plan upgrade works
 - [ ] Downgrade to free (via customer portal)
@@ -275,7 +266,7 @@ supabase secrets set APP_URL=https://your-app-url.com
    - Activate live mode in Stripe
 
 2. **Create Live Products**
-   - Create same 3 plans in **live mode**
+   - Create same 2 plans in **live mode**
    - Get new live price IDs
 
 3. **Update Environment Variables**
@@ -285,7 +276,6 @@ supabase secrets set APP_URL=https://your-app-url.com
    STRIPE_SECRET_KEY=sk_live_...
 
    # Update price IDs to live prices
-   VITE_STRIPE_PRICE_BASIC=price_live_basic
    VITE_STRIPE_PRICE_PLUS=price_live_plus
    VITE_STRIPE_PRICE_PREMIUM=price_live_premium
    ```
@@ -312,8 +302,7 @@ supabase secrets set APP_URL=https://your-app-url.com
 
 - **Per Transaction**: 2.9% + $0.30
 - **Examples**:
-  - $9.00 Basic → Fee: $0.56 → You receive: $8.44
-  - $19.00 Plus → Fee: $0.85 → You receive: $18.15
+  - $9.00 Plus → Fee: $0.56 → You receive: $8.44
   - $29.00 Premium → Fee: $1.14 → You receive: $27.86
 
 ---
@@ -331,7 +320,7 @@ supabase secrets set APP_URL=https://your-app-url.com
 ## ✅ Summary
 
 You now have a **complete, working Stripe integration** with:
-- ✅ Subscription billing (3 paid plans + free)
+- ✅ Subscription billing (2 paid plans + free)
 - ✅ Secure payment processing
 - ✅ Automatic recurring billing
 - ✅ Customer portal for self-service
